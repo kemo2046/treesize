@@ -1,0 +1,48 @@
+name: Build Electron App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            artifact: out/make/*
+          - os: macos-latest
+            platform: darwin
+            artifact: out/make/*
+          - os: ubuntu-latest
+            platform: linux
+            artifact: out/make/*
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Make
+        run: npx electron-forge make --platform ${{ matrix.platform }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: treesize-${{ matrix.platform }}
+          path: ${{ matrix.artifact }}
+          retention-days: 30
