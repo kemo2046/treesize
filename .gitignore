@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+@eaDir/
+
+# Runtime data (user-specific, never commit)
+~/.disk_analyzer/
+*.log
+
+# Secrets
+.env
+.env.*
+secrets.json
+credentials.json
