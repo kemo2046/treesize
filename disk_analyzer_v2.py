@@ -54,6 +54,15 @@ try:
 except ImportError:
     HAS_SEND2TRASH = False
 
+# Windows: 强制 UTF-8 输出，避免中文乱码
+if sys.platform == "win32":
+    os.environ.setdefault("PYTHONUTF8", "1")
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # ========== 常量 ==========
 DEFAULT_TOP_N: int = 15
 PROGRESS_UPDATE_INTERVAL: float = 0.15

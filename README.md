@@ -31,6 +31,12 @@ pip install requests      # LLM 智能分析
 python disk_analyzer_v2.py
 ```
 
+### Windows 用户
+
+双击 `run.bat` 一键运行（自动设置 UTF-8 编码，避免中文乱码）。
+
+或打包为独立 exe：双击 `build.bat`，完成后在 `dist/` 目录找到 `DiskAnalyzer.exe`。
+
 ### 快捷键
 
 | 快捷键 | 功能 |

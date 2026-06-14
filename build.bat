@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul 2>&1
 title 磁盘分析器 v2 - 打包工具
 setlocal enabledelayedexpansion
 
