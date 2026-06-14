@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>磁盘空间分析器</title>
+<style>
+/* ═══════════════════════════════════════════════
+   THEME TOKENS
+   ═══════════════════════════════════════════════ */
+:root {
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', 'Cascadia Code', ui-monospace, Menlo, monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --transition: 0.2s ease;
+}
+[data-theme="light"] {
+  --bg: oklch(97.5% 0.004 250); --bg-raised: oklch(100% 0 0); --surface: oklch(100% 0 0);
+  --surface-alt: oklch(96% 0.005 250); --fg: oklch(18% 0.012 250); --fg-secondary: oklch(40% 0.012 250);
+  --muted: oklch(55% 0.012 250); --border: oklch(90% 0.006 250); --border-strong: oklch(82% 0.008 250);
+  --accent: oklch(55% 0.19 255); --accent-soft: oklch(92% 0.04 255);
+  --success: oklch(55% 0.16 155); --success-soft: oklch(93% 0.04 155);
+  --warning: oklch(62% 0.18 75); --warning-soft: oklch(93% 0.05 75);
+  --danger: oklch(55% 0.20 25); --danger-soft: oklch(93% 0.04 25);
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.04); --shadow-md: 0 2px 8px oklch(0% 0 0 / 0.06);
+  --sidebar-bg: oklch(15% 0.012 250); --sidebar-fg: oklch(88% 0.006 250);
+  --sidebar-muted: oklch(55% 0.012 250); --sidebar-active: oklch(55% 0.19 255);
+  --sidebar-hover: oklch(22% 0.012 250);
+  --chart-1: oklch(55% 0.19 255); --chart-2: oklch(58% 0.16 155); --chart-3: oklch(62% 0.18 75);
+  --chart-4: oklch(55% 0.20 25); --chart-5: oklch(60% 0.14 300); --chart-6: oklch(48% 0.12 200);
+  --chart-7: oklch(72% 0.10 110);
+}
+[data-theme="dark"] {
+  --bg: oklch(14% 0.012 250); --bg-raised: oklch(18% 0.012 250); --surface: oklch(20% 0.012 250);
+  --surface-alt: oklch(16% 0.012 250); --fg: oklch(90% 0.006 250); --fg-secondary: oklch(65% 0.012 250);
+  --muted: oklch(48% 0.012 250); --border: oklch(28% 0.012 250); --border-strong: oklch(35% 0.012 250);
+  --accent: oklch(65% 0.18 255); --accent-soft: oklch(22% 0.05 255);
+  --success: oklch(65% 0.15 155); --success-soft: oklch(22% 0.04 155);
+  --warning: oklch(72% 0.16 75); --warning-soft: oklch(24% 0.05 75);
+  --danger: oklch(62% 0.18 25); --danger-soft: oklch(22% 0.05 25);
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.2); --shadow-md: 0 2px 8px oklch(0% 0 0 / 0.3);
+  --sidebar-bg: oklch(12% 0.012 250); --sidebar-fg: oklch(85% 0.006 250);
+  --sidebar-muted: oklch(50% 0.012 250); --sidebar-active: oklch(65% 0.18 255);
+  --sidebar-hover: oklch(16% 0.012 250);
+  --chart-1: oklch(65% 0.18 255); --chart-2: oklch(65% 0.15 155); --chart-3: oklch(72% 0.16 75);
+  --chart-4: oklch(62% 0.18 25); --chart-5: oklch(68% 0.14 300); --chart-6: oklch(58% 0.12 200);
+  --chart-7: oklch(78% 0.10 110);
+}
+
+/* ═══════════════════════════════════════════════
+   RESET + BASE
+   ═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--fg); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; transition: background var(--transition), color var(--transition); }
+a { color: var(--accent); text-decoration: none; }
+input, select, button, textarea { font: inherit; color: inherit; }
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════ */
+.sidebar { width: 220px; min-width: 220px; background: var(--sidebar-bg); color: var(--sidebar-fg); display: flex; flex-direction: column; padding: 16px 0; user-select: none; -webkit-app-region: drag; }
+.sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 20px 20px; border-bottom: 1px solid oklch(100% 0 0 / 0.06); }
+.sidebar-logo svg { width: 28px; height: 28px; color: var(--sidebar-active); }
+.sidebar-logo-text { font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.sidebar-logo-ver { font-size: 10px; color: var(--sidebar-muted); }
+.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; -webkit-app-region: no-drag; }
+.sidebar-section { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sidebar-muted); padding: 16px 20px 6px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 20px; font-size: 13px; color: var(--sidebar-fg); cursor: pointer; transition: background var(--transition), color var(--transition); border-radius: 0; position: relative; }
+.nav-item:hover { background: var(--sidebar-hover); }
+.nav-item.active { background: var(--sidebar-hover); color: var(--sidebar-active); }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--sidebar-active); border-radius: 0 3px 3px 0; }
+.nav-item svg { width: 18px; height: 18px; opacity: 0.7; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+.nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 99px; }
+.sidebar-footer { padding: 12px 20px; border-top: 1px solid oklch(100% 0 0 / 0.06); }
+.sidebar-footer-label { font-size: 11px; color: var(--sidebar-muted); display: block; }
+.sidebar-footer-bar { height: 4px; background: oklch(100% 0 0 / 0.1); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.sidebar-footer-bar-fill { height: 100%; background: var(--sidebar-active); border-radius: 2px; transition: width 0.6s ease; }
+
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--bg-raised); border-bottom: 1px solid var(--border); -webkit-app-region: drag; }
+.topbar-left { display: flex; align-items: baseline; gap: 12px; }
+.topbar-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+.topbar-sub { font-size: 12px; color: var(--muted); }
+.topbar-actions { display: flex; align-items: center; gap: 8px; -webkit-app-region: no-drag; }
+.content { flex: 1; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
+
+/* ═══════════════════════════════════════════════
+   TAB PANELS
+   ═══════════════════════════════════════════════ */
+.tab-panel { display: none; animation: fadeIn 0.25s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ═══════════════════════════════════════════════
+   GRID LAYOUTS
+   ═══════════════════════════════════════════════ */
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+.grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+.grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 20px; }
+@media (max-width: 1200px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .grid-4 { grid-template-columns: 1fr; } .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════════════════════
+   CARDS
+   ═══════════════════════════════════════════════ */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; transition: border-color var(--transition); }
+.card:hover { border-color: var(--border-strong); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--fg-secondary); }
+.card-value { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+.card-value-sm { font-size: 20px; }
+.card-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.card-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+.card-icon svg { width: 18px; height: 18px; }
+.card-icon.accent { background: var(--accent-soft); color: var(--accent); }
+.card-icon.warning { background: var(--warning-soft); color: var(--warning); }
+.card-icon.success { background: var(--success-soft); color: var(--success); }
+.card-icon.danger { background: var(--danger-soft); color: var(--danger); }
+
+/* ═══════════════════════════════════════════════
+   DATA TABLE
+   ═══════════════════════════════════════════════ */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table thead th { position: sticky; top: 0; background: var(--surface); text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; z-index: 1; }
+.data-table thead th:hover { color: var(--fg); }
+.data-table tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--surface-alt); }
+.file-name { font-weight: 600; }
+.file-path { font-family: var(--font-mono); font-size: 12px; color: var(--muted); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-size { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.file-bar { width: 80px; height: 6px; background: var(--surface-alt); border-radius: 3px; overflow: hidden; }
+.file-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+td input[type="checkbox"] { accent-color: var(--accent); }
+
+/* ═══════════════════════════════════════════════
+   TAGS
+   ═══════════════════════════════════════════════ */
+.tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+.tag-accent { background: var(--accent-soft); color: var(--accent); }
+.tag-success { background: var(--success-soft); color: var(--success); }
+.tag-warning { background: var(--warning-soft); color: var(--warning); }
+.tag-danger { background: var(--danger-soft); color: var(--danger); }
+
+/* ═══════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════ */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 12.5px; font-weight: 500; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; transition: all var(--transition); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--fg-secondary); }
+.btn-ghost:hover { background: var(--surface-alt); border-color: var(--border-strong); }
+.btn-icon { padding: 6px; background: transparent; border: none; color: var(--muted); cursor: pointer; border-radius: var(--radius-sm); }
+.btn-icon:hover { background: var(--surface-alt); color: var(--fg); }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { filter: brightness(1.1); }
+.btn svg { width: 16px; height: 16px; }
+
+/* ═══════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════ */
+.progress { height: 8px; background: var(--surface-alt); border-radius: 4px; overflow: hidden; }
+.progress-lg { height: 10px; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+/* ═══════════════════════════════════════════════
+   TOGGLE SWITCH
+   ═══════════════════════════════════════════════ */
+.toggle { width: 40px; height: 22px; background: var(--border-strong); border-radius: 11px; position: relative; cursor: pointer; transition: background var(--transition); flex-shrink: 0; }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform var(--transition); box-shadow: 0 1px 3px oklch(0% 0 0 / 0.15); }
+.toggle.on { background: var(--accent); }
+.toggle.on::after { transform: translateX(18px); }
+
+/* ═══════════════════════════════════════════════
+   SCAN STATUS BAR
+   ═══════════════════════════════════════════════ */
+.scan-bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius-md); margin-bottom: 20px; font-size: 12.5px; }
+.scan-bar.hidden { display: none; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.scan-bar-path { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+.scan-bar-stat { color: var(--muted); }
+.scan-bar-stat strong { color: var(--fg); }
+
+/* ═══════════════════════════════════════════════
+   DONUT CHART (SVG)
+   ═══════════════════════════════════════════════ */
+.donut-wrap { display: flex; align-items: center; gap: 24px; }
+.donut-svg { width: 160px; height: 160px; flex-shrink: 0; }
+.donut-ring { fill: none; stroke-width: 40; }
+.donut-center { fill: var(--surface); }
+.donut-label { font-family: var(--font-display); font-size: 13px; font-weight: 700; fill: var(--fg); text-anchor: middle; }
+.donut-sublabel { font-size: 11px; fill: var(--muted); text-anchor: middle; }
+.donut-legend { display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.legend-value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; margin-left: auto; color: var(--fg-secondary); }
+
+/* ═══════════════════════════════════════════════
+   HEALTH CARD
+   ═══════════════════════════════════════════════ */
+.health-item { margin-bottom: 14px; }
+.health-item:last-child { margin-bottom: 0; }
+.health-label { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px; }
+.health-value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.health-tip { font-size: 12px; color: var(--muted); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════
+   DUP GROUP
+   ═══════════════════════════════════════════════ */
+.dup-group { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 12px; overflow: hidden; }
+.dup-group-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background var(--transition); }
+.dup-group-header:hover { background: var(--surface-alt); }
+.dup-group-header .chevron { transition: transform 0.2s; color: var(--muted); }
+.dup-group-header .chevron.open { transform: rotate(90deg); }
+.dup-group-meta { display: flex; gap: 12px; margin-left: auto; font-size: 12px; color: var(--muted); }
+.dup-group-body { padding: 0 16px 14px; }
+.dup-group-body.collapsed { display: none; }
+.dup-file { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+.dup-file:last-child { border-bottom: none; }
+
+/* ═══════════════════════════════════════════════
+   CLEAN CATEGORY
+   ═══════════════════════════════════════════════ */
+.clean-cat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; overflow: hidden; }
+.clean-cat-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; transition: background var(--transition); }
+.clean-cat-header:hover { background: var(--surface-alt); }
+.clean-cat-body { display: none; padding: 0 16px 12px; }
+.clean-cat-body.show { display: block; }
+.clean-cat-path { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 4px 0 4px 24px; }
+
+/* ═══════════════════════════════════════════════
+   TIMELINE
+   ═══════════════════════════════════════════════ */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot { position: absolute; left: -28px; top: 4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--accent); background: var(--surface); }
+.timeline-dot.success { border-color: var(--success); }
+.timeline-dot.warning { border-color: var(--warning); }
+.timeline-date { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.timeline-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; }
+.timeline-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.timeline-desc { font-size: 12.5px; color: var(--fg-secondary); }
+.timeline-stats { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.timeline-stats strong { color: var(--fg); }
+
+/* ═══════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════ */
+.settings-group { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; max-width: 680px; }
+.settings-group-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 13px; }
+.settings-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.settings-control { flex-shrink: 0; }
+.settings-control input[type="number"] { width: 80px; padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 12.5px; text-align: center; background: var(--surface); }
+.settings-control select { padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12.5px; background: var(--surface); }
+.settings-control input[type="text"] { width: 240px; padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12.5px; background: var(--surface); }
+
+/* ═══════════════════════════════════════════════
+   BAR CHART (CSS)
+   ═══════════════════════════════════════════════ */
+.bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 120px; padding: 0 8px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar-fill { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.5s ease; }
+.bar-label { font-size: 10px; font-family: var(--font-mono); color: var(--muted); }
+
+/* ═══════════════════════════════════════════════
+   AI CLEAN
+   ═══════════════════════════════════════════════ */
+.ai-layout { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
+@media (max-width: 1100px) { .ai-layout { grid-template-columns: 1fr; } }
+.ai-main { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; min-height: 400px; }
+.ai-toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+.ai-output { font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.ai-output h2 { font-size: 16px; font-weight: 700; margin: 18px 0 8px; color: var(--fg); }
+.ai-output h3 { font-size: 14px; font-weight: 600; margin: 14px 0 6px; color: var(--fg-secondary); }
+.ai-output code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-alt); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
+.ai-output pre { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; overflow-x: auto; margin: 10px 0; }
+.ai-output pre code { background: none; border: none; padding: 0; }
+.ai-sidebar { display: flex; flex-direction: column; gap: 12px; }
+.ai-suggestion { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; cursor: pointer; transition: all var(--transition); }
+.ai-suggestion:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.ai-suggestion-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.ai-suggestion-size { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--success); }
+
+/* ═══════════════════════════════════════════════
+   SEARCH BOX
+   ═══════════════════════════════════════════════ */
+.search-box { position: relative; margin-bottom: 12px; }
+.search-box input { width: 100%; padding: 7px 12px 7px 32px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12.5px; background: var(--surface); }
+.search-box input:focus { outline: none; border-color: var(--accent); }
+.search-box svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted); }
+
+/* ═══════════════════════════════════════════════
+   PAGINATION
+   ═══════════════════════════════════════════════ */
+.pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+.pagination-btns { display: flex; gap: 8px; }
+
+/* ═══════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════ */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+/* ═══════════════════════════════════════════════
+   MISC
+   ═══════════════════════════════════════════════ */
+.section-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+.stat-row { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.stat-row strong { color: var(--fg); }
+.mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; } .mt-20 { margin-top: 20px; }
+.mb-8 { margin-bottom: 8px; } .mb-12 { margin-bottom: 12px; } .mb-16 { margin-bottom: 16px; } .mb-20 { margin-bottom: 20px; }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.text-accent { color: var(--accent); }
+.text-muted { color: var(--muted); }
+.text-mono { font-family: var(--font-mono); }
+.flex { display: flex; } .flex-col { flex-direction: column; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .gap-8 { gap: 8px; } .gap-12 { gap: 12px; }
+.drag-bar { -webkit-app-region: drag; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <div>
+      <div class="sidebar-logo-text">磁盘分析器</div>
+      <div class="sidebar-logo-ver">v3.0.0</div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="sidebar-section">分析</div>
+    <div class="nav-item active" data-tab="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      概览
+    </div>
+    <div class="nav-item" data-tab="large-files">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      大文件
+      <span class="nav-badge" id="badgeLargeFiles" style="display:none"></span>
+    </div>
+    <div class="nav-item" data-tab="duplicates">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      重复文件
+      <span class="nav-badge" id="badgeDuplicates" style="display:none"></span>
+    </div>
+    <div class="nav-item" data-tab="temp-files">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      临时文件
+    </div>
+
+    <div class="sidebar-section">工具</div>
+    <div class="nav-item" data-tab="ai-clean">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+      智能清理
+    </div>
+    <div class="nav-item" data-tab="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      历史记录
+    </div>
+    <div class="nav-item" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      设置
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <span class="sidebar-footer-label" id="footerLabel">磁盘使用</span>
+    <div class="sidebar-footer-bar"><div class="sidebar-footer-bar-fill" id="footerBarFill" style="width:0%"></div></div>
+    <span class="sidebar-footer-label mt-8" id="footerUsage">-- / --</span>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="topbarTitle">概览</span>
+      <span class="topbar-sub" id="topbarSub"></span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-icon" id="btnTheme" title="切换主题">
+        <svg id="iconTheme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="btn btn-primary" id="btnScan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        重新扫描
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ═══════════ PANEL: OVERVIEW ═══════════ -->
+    <div class="tab-panel active" id="panel-overview">
+      <!-- Scan status bar -->
+      <div class="scan-bar hidden" id="scanBar">
+        <div class="spinner"></div>
+        <span>正在扫描</span>
+        <span class="scan-bar-path" id="scanPath"></span>
+        <span class="scan-bar-stat">已扫描 <strong id="scanItems">0</strong> 个文件</span>
+        <span class="scan-bar-stat">已分析 <strong id="scanSize">0 B</strong></span>
+        <span class="scan-bar-stat">耗时 <strong id="scanElapsed">0</strong> 秒</span>
+        <button class="btn btn-ghost" id="btnStopScan" style="margin-left:auto">暂停</button>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <p>选择扫描路径并点击「重新扫描」开始分析</p>
+      </div>
+
+      <!-- Stats (hidden until scan completes) -->
+      <div id="overviewContent" style="display:none">
+        <div class="grid-4" id="statCards"></div>
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-header"><span class="card-title">存储空间分布</span></div>
+            <div class="donut-wrap" id="donutWrap">
+              <svg class="donut-svg" viewBox="0 0 200 200" id="donutSvg"></svg>
+              <div class="donut-legend" id="donutLegend"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">存储健康度</span></div>
+            <div id="healthBars"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">最大目录 TOP <span id="topNLabel">15</span></span></div>
+          <table class="data-table" id="tableTopDirs">
+            <thead><tr><th>#</th><th>路径</th><th>类型</th><th>大小</th><th>占比</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ PANEL: LARGE FILES ═══════════ -->
+    <div class="tab-panel" id="panel-large-files">
+      <div class="card-header mb-12"><span class="card-title" id="largeFilesTitle">大文件</span></div>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="搜索文件名或路径..." id="searchLargeFiles">
+      </div>
+      <table class="data-table" id="tableLargeFiles">
+        <thead><tr><th>文件名</th><th>路径</th><th>类型</th><th>修改日期</th><th>大小</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="pagination" id="paginationLargeFiles">
+        <span id="pageInfo"></span>
+        <div class="pagination-btns">
+          <button class="btn btn-ghost" id="btnPrevPage">上一页</button>
+          <button class="btn btn-ghost" id="btnNextPage">下一页</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ PANEL: DUPLICATES ═══════════ -->
+    <div class="tab-panel" id="panel-duplicates">
+      <div class="flex items-center justify-between mb-16">
+        <span class="card-title" id="dupTitle">重复文件</span>
+        <div class="flex gap-8">
+          <button class="btn btn-ghost" id="btnDupRescan">重新扫描</button>
+          <button class="btn btn-danger" id="btnDupClean">清理已选中</button>
+        </div>
+      </div>
+      <div id="dupGroups"></div>
+    </div>
+
+    <!-- ═══════════ PANEL: TEMP FILES ═══════════ -->
+    <div class="tab-panel" id="panel-temp-files">
+      <div class="flex items-center justify-between mb-16">
+        <div>
+          <span class="card-title" id="tempTitle">临时文件</span>
+          <span class="tag tag-success ml-8" id="tempSafeTag">安全</span>
+        </div>
+        <button class="btn btn-danger" id="btnTempClean">清理全部</button>
+      </div>
+      <div id="tempCategories"></div>
+    </div>
+
+    <!-- ═══════════ PANEL: AI CLEAN ═══════════ -->
+    <div class="tab-panel" id="panel-ai-clean">
+      <div class="ai-layout">
+        <div class="ai-main">
+          <div class="ai-toolbar">
+            <button class="btn btn-primary" id="btnAIStart">开始分析</button>
+            <button class="btn btn-ghost" id="btnAIStop" disabled>停止</button>
+            <button class="btn btn-ghost" id="btnAIClear">清空</button>
+            <button class="btn btn-ghost" id="btnAICopy">复制结果</button>
+            <button class="btn btn-ghost" id="btnAIExport">导出 Markdown</button>
+          </div>
+          <div class="ai-output" id="aiOutput">
+            <span class="text-muted">点击「开始分析」，AI 将根据扫描结果给出智能清理建议</span>
+          </div>
+        </div>
+        <div class="ai-sidebar">
+          <div class="card-title mb-8">快速操作</div>
+          <div class="ai-suggestion" id="aiSuggestions">
+            <span class="text-muted">扫描完成后显示建议</span>
+          </div>
+          <div class="card mt-16">
+            <div class="card-title mb-8">风险等级说明</div>
+            <div style="font-size:12px;line-height:1.8">
+              <div><span class="tag tag-success">无风险</span> 可安全清理</div>
+              <div class="mt-8"><span class="tag tag-warning">需确认</span> 建议清理前确认内容</div>
+              <div class="mt-8"><span class="tag tag-danger">高风险</span> 可能影响系统运行</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ PANEL: HISTORY ═══════════ -->
+    <div class="tab-panel" id="panel-history">
+      <div class="flex items-center justify-between mb-16">
+        <span class="card-title" id="historyTitle">历史记录</span>
+        <button class="btn btn-ghost" id="btnHistoryClear">清除历史</button>
+      </div>
+      <div class="grid-3" id="historyStats"></div>
+      <div class="card mb-20">
+        <div class="card-header"><span class="card-title">存储趋势</span></div>
+        <div class="bar-chart" id="historyChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">操作时间线</span></div>
+        <div class="timeline" id="historyTimeline"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════ PANEL: SETTINGS ═══════════ -->
+    <div class="tab-panel" id="panel-settings">
+      <div class="settings-group">
+        <div class="settings-group-title">通用设置</div>
+        <div class="settings-row">
+          <div><div class="settings-label">深色模式</div><div class="settings-desc">切换深色/浅色主题</div></div>
+          <div class="settings-control"><div class="toggle" id="toggleTheme" onclick="window.app.toggleTheme()"></div></div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">扫描设置</div>
+        <div class="settings-row">
+          <div><div class="settings-label">Top N 显示数量</div><div class="settings-desc">概览面板显示的最大目录数量 (5-100)</div></div>
+          <div class="settings-control"><input type="number" id="settingTopN" value="15" min="5" max="100"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">重复文件检测</div><div class="settings-desc">扫描时检测重复文件 (>= 100MB)</div></div>
+          <div class="settings-control"><div class="toggle on" id="toggleDup" onclick="window.app.toggleSetting('duplicateDetection', this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">模拟预览模式</div><div class="settings-desc">开启后删除操作仅预览不执行</div></div>
+          <div class="settings-control"><div class="toggle" id="toggleSimulate" onclick="window.app.toggleSetting('simulateMode', this)"></div></div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">LLM 配置</div>
+        <div class="settings-row">
+          <div><div class="settings-label">API 地址</div><div class="settings-desc">OpenAI 兼容 API 端点</div></div>
+          <div class="settings-control"><input type="text" id="settingApiUrl" placeholder="https://api.openai.com"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">API Key</div><div class="settings-desc">API 密钥</div></div>
+          <div class="settings-control"><input type="text" id="settingApiKey" placeholder="sk-..."></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">模型</div><div class="settings-desc">使用的模型名称</div></div>
+          <div class="settings-control"><input type="text" id="settingModel" placeholder="gpt-4o-mini"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">连接测试</div><div class="settings-desc">测试 LLM API 连接</div></div>
+          <div class="settings-control"><button class="btn btn-ghost" id="btnTestLLM">测试连接</button></div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">关于</div>
+        <div class="settings-row">
+          <div><div class="settings-label">版本</div><div class="settings-desc">磁盘空间分析工具</div></div>
+          <div class="settings-control"><span class="tag tag-accent">v3.0.0</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════
+// APP LOGIC
+// ═══════════════════════════════════════════════
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+// State
+let scanResult = null;
+let currentTheme = 'light';
+let largeFilesPage = 0;
+const PAGE_SIZE = 50;
+
+// ─── Helpers ───
+function formatSize(bytes) {
+  if (bytes >= 1024**4) return (bytes / 1024**4).toFixed(2) + ' TB';
+  if (bytes >= 1024**3) return (bytes / 1024**3).toFixed(2) + ' GB';
+  if (bytes >= 1024**2) return (bytes / 1024**2).toFixed(2) + ' MB';
+  if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+  return bytes + ' B';
+}
+
+function getExt(path) {
+  const name = path.split(/[\\/]/).pop() || '';
+  const dot = name.lastIndexOf('.');
+  return dot > 0 ? name.slice(dot + 1).toUpperCase() : '其他';
+}
+
+function getExtTag(ext) {
+  const map = {
+    'MP4': 'video', 'MKV': 'video', 'AVI': 'video', 'MOV': 'video',
+    'ZIP': 'archive', 'RAR': 'archive', '7Z': 'archive', 'TAR': 'archive', 'GZ': 'archive',
+    'PNG': 'image', 'JPG': 'image', 'JPEG': 'image', 'GIF': 'image', 'WEBP': 'image',
+    'PDF': 'doc', 'DOC': 'doc', 'DOCX': 'doc', 'XLS': 'doc', 'XLSX': 'doc',
+    'JS': 'code', 'TS': 'code', 'PY': 'code', 'JAVA': 'code', 'CPP': 'code',
+    'DMG': 'installer', 'ISO': 'installer', 'PKG': 'installer', 'MSI': 'installer',
+  };
+  const type = map[ext.toUpperCase()] || 'other';
+  const colors = { video: 'tag-danger', archive: 'tag-warning', image: 'tag-accent', doc: 'tag-success', code: 'tag-accent', installer: 'tag-warning', other: 'tag-accent' };
+  return `<span class="tag ${colors[type]}">${ext}</span>`;
+}
+
+function relativeDate(mtime) {
+  const days = Math.floor((Date.now() - mtime * 1000) / (1000*60*60*24));
+  if (days === 0) return '今天';
+  if (days === 1) return '昨天';
+  if (days < 7) return `${days}天前`;
+  if (days < 30) return `${Math.floor(days/7)}周前`;
+  if (days < 365) return `${Math.floor(days/30)}月前`;
+  return `${Math.floor(days/365)}年前`;
+}
+
+// ─── Navigation ───
+const TAB_TITLES = {
+  'overview': '概览', 'large-files': '大文件', 'duplicates': '重复文件',
+  'temp-files': '临时文件', 'ai-clean': '智能清理', 'history': '历史记录', 'settings': '设置'
+};
+
+function showPanel(name) {
+  $$('.tab-panel').forEach(p => p.classList.remove('active'));
+  $$('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = $(`#panel-${name}`);
+  const nav = $(`.nav-item[data-tab="${name}"]`);
+  if (panel) panel.classList.add('active');
+  if (nav) nav.classList.add('active');
+  $('#topbarTitle').textContent = TAB_TITLES[name] || name;
+  $('.content').scrollTop = 0;
+}
+
+$$('.nav-item').forEach(item => {
+  item.addEventListener('click', () => showPanel(item.dataset.tab));
+});
+
+// ─── Theme ───
+function setTheme(theme) {
+  currentTheme = theme;
+  document.documentElement.dataset.theme = theme;
+  const icon = theme === 'dark'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  $('#iconTheme').outerHTML = icon.replace('<svg', '<svg id="iconTheme"');
+  if (theme === 'dark') {
+    $('#toggleTheme').classList.add('on');
+  } else {
+    $('#toggleTheme').classList.remove('on');
+  }
+  window.api?.setTheme(theme);
+}
+
+$('#btnTheme').addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
+
+// ─── Scan ───
+$('#btnScan').addEventListener('click', async () => {
+  const config = await window.api.getConfig();
+  const scanPath = config.lastScanPath || require('os').homedir();
+  // Show path input dialog
+  const path = prompt('扫描路径:', scanPath);
+  if (!path) return;
+  startScan(path);
+});
+
+function startScan(path) {
+  $('#scanBar').classList.remove('hidden');
+  $('#emptyState').style.display = 'none';
+  $('#overviewContent').style.display = 'none';
+  $('#scanPath').textContent = path;
+  window.api.startScan(path);
+}
+
+$('#btnStopScan').addEventListener('click', () => window.api.stopScan());
+
+window.api.onScanProgress((p) => {
+  $('#scanItems').textContent = p.scannedItems.toLocaleString();
+  $('#scanSize').textContent = formatSize(p.scannedSize);
+  $('#scanElapsed').textContent = p.elapsed.toFixed(1);
+});
+
+window.api.onScanResult((result) => {
+  scanResult = result;
+  $('#scanBar').classList.add('hidden');
+  $('#overviewContent').style.display = 'block';
+  $('#emptyState').style.display = 'none';
+  populateOverview(result);
+  populateLargeFiles(result);
+  populateDuplicates(result);
+  populateTempFiles(result);
+  populateHistory();
+  updateSidebar(result);
+});
+
+window.api.onScanError((err) => {
+  $('#scanBar').classList.add('hidden');
+  alert('扫描错误: ' + err);
+});
+
+// ─── Populate Overview ───
+function populateOverview(r) {
+  // Stat cards
+  const disks = r.topDirs[0] ? [{ total: r.totalUsed * 1.37, used: r.totalUsed }] : [];
+  const total = disks[0]?.total || r.totalUsed * 1.37;
+  const free = total - r.totalUsed;
+  const cleanable = r.junkDirs.reduce((s, [, sz]) => s + sz, 0);
+  const pct = ((r.totalUsed / total) * 100).toFixed(1);
+
+  $('#statCards').innerHTML = `
+    <div class="card"><div class="card-header"><span class="card-title">总容量</span><div class="card-icon accent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div></div><div class="card-value">${formatSize(total)}</div><div class="card-sub">分析磁盘</div></div>
+    <div class="card"><div class="card-header"><span class="card-title">已使用</span><div class="card-icon warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div></div><div class="card-value">${formatSize(r.totalUsed)}</div><div class="card-sub">占总容量 ${pct}%</div></div>
+    <div class="card"><div class="card-header"><span class="card-title">可用空间</span><div class="card-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div><div class="card-value text-success">${formatSize(free)}</div><div class="card-sub">建议保持 ≥ 50 GB</div></div>
+    <div class="card"><div class="card-header"><span class="card-title">可清理</span><div class="card-icon danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-value text-danger">${formatSize(cleanable)}</div><div class="card-sub">缓存+日志+重复文件</div></div>
+  `;
+
+  // Donut chart
+  drawDonut(r.extStats, r.totalUsed);
+
+  // Health bars
+  const dupWasted = r.duplicates.reduce((s, [sz, paths]) => s + sz * (paths.length - 1), 0);
+  const cleanPct = ((cleanable / r.totalUsed) * 100).toFixed(1);
+  const dupPct = ((dupWasted / r.totalUsed) * 100).toFixed(1);
+  const healthColor = pct < 75 ? 'var(--success)' : pct < 90 ? 'var(--warning)' : 'var(--danger)';
+
+  $('#healthBars').innerHTML = `
+    <div class="health-item"><div class="health-label"><span>磁盘使用率</span><span class="health-value">${pct}%</span></div><div class="progress progress-lg"><div class="progress-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--accent),${healthColor})"></div></div></div>
+    <div class="health-item"><div class="health-label"><span>可清理空间</span><span class="health-value">${cleanPct}%</span></div><div class="progress progress-lg"><div class="progress-fill" style="width:${cleanPct}%;background:var(--danger)"></div></div></div>
+    <div class="health-item"><div class="health-label"><span>重复文件占比</span><span class="health-value">${dupPct}%</span></div><div class="progress progress-lg"><div class="progress-fill" style="width:${dupPct}%;background:var(--warning)"></div></div></div>
+    <div class="health-tip">💡 ${pct > 90 ? '磁盘空间严重不足，建议立即清理' : pct > 75 ? '磁盘空间偏少，建议定期清理' : '磁盘空间充足'}</div>
+  `;
+
+  // Top dirs table
+  const maxDirSize = r.topDirs[0]?.[1] || 1;
+  const config_topN = r.topDirs.length;
+  $('#topNLabel').textContent = config_topN;
+  const tbody = $('#tableTopDirs tbody');
+  tbody.innerHTML = r.topDirs.map(([dirPath, size], i) => {
+    const barPct = ((size / maxDirSize) * 100).toFixed(0);
+    const dirName = dirPath.split(/[\\/]/).pop() || dirPath;
+    const tag = dirPath.match(/cache|temp|log|backup/i) ? '<span class="tag tag-warning">可清理</span>' : '<span class="tag tag-accent">目录</span>';
+    return `<tr><td>${i+1}</td><td class="file-path" title="${dirPath}">${dirPath}</td><td>${tag}</td><td class="file-size">${formatSize(size)}</td><td><div class="file-bar"><div class="file-bar-fill" style="width:${barPct}%;background:var(--accent)"></div></div></td></tr>`;
+  }).join('');
+}
+
+function drawDonut(extStats, totalUsed) {
+  const svg = $('#donutSvg');
+  const legend = $('#donutLegend');
+  const cx = 100, cy = 100, r = 70, sw = 40;
+  const circ = 2 * Math.PI * r;
+  const colors = ['var(--chart-1)','var(--chart-2)','var(--chart-3)','var(--chart-4)','var(--chart-5)','var(--chart-6)','var(--chart-7)'];
+
+  // Top 6 + other
+  const sorted = [...extStats].sort((a, b) => b[1] - a[1]);
+  const top = sorted.slice(0, 6);
+  const otherSize = sorted.slice(6).reduce((s, [, v]) => s + v, 0);
+  if (otherSize > 0) top.push(['其他', otherSize]);
+
+  let offset = 0;
+  svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${sw}"/>`;
+
+  top.forEach(([name, size], i) => {
+    const pct = size / totalUsed;
+    const dashLen = pct * circ;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', cx);
+    circle.setAttribute('cy', cy);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', colors[i % colors.length]);
+    circle.setAttribute('stroke-width', sw);
+    circle.setAttribute('stroke-dasharray', `${dashLen} ${circ - dashLen}`);
+    circle.setAttribute('stroke-dashoffset', `${-offset}`);
+    circle.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
+    svg.appendChild(circle);
+    offset += dashLen;
+  });
+
+  // Center
+  svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r - sw/2}" class="donut-center"/><text x="${cx}" y="${cy - 6}" class="donut-label">${formatSize(totalUsed)}</text><text x="${cx}" y="${cy + 12}" class="donut-sublabel">已使用</text>`;
+
+  // Legend
+  legend.innerHTML = top.map(([name, size], i) => {
+    const pct = ((size / totalUsed) * 100).toFixed(1);
+    return `<div class="legend-item"><span class="legend-dot" style="background:${colors[i % colors.length]}"></span><span>${name}</span><span class="legend-value">${formatSize(size)} (${pct}%)</span></div>`;
+  }).join('');
+}
+
+// ─── Populate Large Files ───
+function populateLargeFiles(r) {
+  largeFilesPage = 0;
+  renderLargeFilesPage();
+  $('#largeFilesTitle').textContent = `${r.topFiles.length} 个大文件，总计 ${formatSize(r.topFiles.reduce((s, [,sz]) => s + sz, 0))}`;
+  $('#badgeLargeFiles').textContent = r.topFiles.length;
+  $('#badgeLargeFiles').style.display = 'inline';
+}
+
+function renderLargeFilesPage() {
+  if (!scanResult) return;
+  const files = scanResult.topFiles;
+  const start = largeFilesPage * PAGE_SIZE;
+  const page = files.slice(start, start + PAGE_SIZE);
+  const max = files[0]?.[1] || 1;
+
+  const tbody = $('#tableLargeFiles tbody');
+  tbody.innerHTML = page.map(([filePath, size, mtime]) => {
+    const name = filePath.split(/[\\/]/).pop() || filePath;
+    const ext = getExt(filePath);
+    const barPct = ((size / max) * 100).toFixed(0);
+    const date = new Date(mtime * 1000).toLocaleDateString('zh-CN');
+    return `<tr><td class="file-name">${name}</td><td class="file-path" title="${filePath}">${filePath}</td><td>${getExtTag(ext)}</td><td>${date}</td><td class="file-size">${formatSize(size)}</td></tr>`;
+  }).join('');
+
+  $('#pageInfo').textContent = `显示 ${start+1}-${Math.min(start+PAGE_SIZE, files.length)} / 共 ${files.length} 项`;
+  $('#btnPrevPage').disabled = largeFilesPage === 0;
+  $('#btnNextPage').disabled = start + PAGE_SIZE >= files.length;
+}
+
+$('#btnPrevPage').addEventListener('click', () => { largeFilesPage = Math.max(0, largeFilesPage - 1); renderLargeFilesPage(); });
+$('#btnNextPage').addEventListener('click', () => { largeFilesPage++; renderLargeFilesPage(); });
+
+// ─── Populate Duplicates ───
+function populateDuplicates(r) {
+  const totalWasted = r.duplicates.reduce((s, [sz, paths]) => s + sz * (paths.length - 1), 0);
+  $('#dupTitle').textContent = `${r.duplicates.length} 组重复文件，可释放 ${formatSize(totalWasted)}`;
+  $('#badgeDuplicates').textContent = r.duplicates.length;
+  $('#badgeDuplicates').style.display = 'inline';
+
+  const container = $('#dupGroups');
+  if (r.duplicates.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>未检测到重复文件</p></div>';
+    return;
+  }
+
+  container.innerHTML = r.duplicates.map(([size, paths], gi) => {
+    const name = paths[0].split(/[\\/]/).pop() || paths[0];
+    const wasted = size * (paths.length - 1);
+    const files = paths.map(p => {
+      const date = new Date().toLocaleDateString('zh-CN');
+      return `<div class="dup-file"><input type="checkbox" data-path="${p}"><span class="file-path" title="${p}">${p}</span><span class="text-muted">${date}</span><span class="file-size">${formatSize(size)}</span><span class="tag tag-warning">建议删除</span></div>`;
+    }).join('');
+
+    return `<div class="dup-group"><div class="dup-group-header" onclick="this.querySelector('.chevron').classList.toggle('open');this.nextElementSibling.classList.toggle('collapsed')"><svg class="chevron open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><strong>${name}</strong><div class="dup-group-meta"><span class="tag tag-accent">${paths.length} 个副本</span><span>每份 ${formatSize(size)}</span><span class="text-danger">可节省 ${formatSize(wasted)}</span></div></div><div class="dup-group-body">${files}</div></div>`;
+  }).join('');
+}
+
+// ─── Populate Temp Files ───
+function populateTempFiles(r) {
+  const totalCleanable = r.junkDirs.reduce((s, [,sz]) => s + sz, 0);
+  $('#tempTitle').textContent = `可安全清理 ${formatSize(totalCleanable)}`;
+
+  const container = $('#tempCategories');
+  if (r.junkDirs.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>未检测到临时文件</p></div>';
+    return;
+  }
+
+  container.innerHTML = r.junkDirs.map(([junkPath, size], i) => {
+    const name = junkPath.split(/[\\/]/).pop() || junkPath;
+    return `<div class="clean-cat"><div class="clean-cat-header" onclick="this.nextElementSibling.classList.toggle('show')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>${name}</span><span class="file-size" style="margin-left:auto">${formatSize(size)}</span></div><div class="clean-cat-body"><div class="clean-cat-path">${junkPath}</div></div></div>`;
+  }).join('');
+}
+
+// ─── History ───
+async function populateHistory() {
+  const history = await window.api.getHistory();
+  $('#historyTitle').textContent = `${history.length} 次扫描`;
+
+  // Stats
+  const totalReleased = history.reduce((s, e) => s + (e.cleanableSize || 0), 0);
+  const avgReleased = history.length > 0 ? totalReleased / history.length : 0;
+  $('#historyStats').innerHTML = `
+    <div class="card"><div class="card-header"><span class="card-title">累计释放空间</span></div><div class="card-value text-success">${formatSize(totalReleased)}</div></div>
+    <div class="card"><div class="card-header"><span class="card-title">平均每次释放</span></div><div class="card-value">${formatSize(avgReleased)}</div></div>
+    <div class="card"><div class="card-header"><span class="card-title">扫描次数</span></div><div class="card-value">${history.length}</div></div>
+  `;
+
+  // Bar chart (last 6 scans)
+  const recent = history.slice(-6);
+  const maxUsed = Math.max(...recent.map(e => e.totalUsed), 1);
+  $('#historyChart').innerHTML = recent.map((e, i) => {
+    const pct = ((e.totalUsed / maxUsed) * 100).toFixed(0);
+    const date = new Date(e.timestamp).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+    return `<div class="bar-col"><div class="bar-fill" style="height:${pct}%;background:linear-gradient(to top, var(--accent), var(--warning))"></div><div class="bar-label">${date}</div></div>`;
+  }).join('');
+
+  // Timeline
+  const timeline = $('#historyTimeline');
+  if (history.length === 0) {
+    timeline.innerHTML = '<div class="empty-state"><p>暂无扫描历史</p></div>';
+    return;
+  }
+
+  timeline.innerHTML = history.slice(-10).reverse().map((e, i) => {
+    const date = new Date(e.timestamp).toLocaleString('zh-CN');
+    const dotClass = i === 0 ? '' : i < 3 ? 'success' : 'warning';
+    return `<div class="timeline-item"><div class="timeline-dot ${dotClass}"></div><div class="timeline-date">${date}</div><div class="timeline-card"><div class="timeline-title">${e.scanPath}</div><div class="timeline-desc">扫描完成</div><div class="timeline-stats"><span>文件数: <strong>${e.scannedItems.toLocaleString()}</strong></span><span>耗时: <strong>${e.scanTime.toFixed(1)}s</strong></span><span>可清理: <strong>${formatSize(e.cleanableSize)}</strong></span></div></div></div>`;
+  }).join('');
+}
+
+// ─── Sidebar ───
+function updateSidebar(r) {
+  const total = r.totalUsed * 1.37;
+  const pct = ((r.totalUsed / total) * 100).toFixed(0);
+  $('#footerLabel').textContent = `${pct}% 已使用`;
+  $('#footerBarFill').style.width = pct + '%';
+  $('#footerUsage').textContent = `${formatSize(r.totalUsed)} / ${formatSize(total)}`;
+}
+
+// ─── Settings ───
+async function loadSettings() {
+  const config = await window.api.getConfig();
+  if (config.theme === 'dark') setTheme('dark');
+  $('#settingTopN').value = config.topN;
+  if (!config.duplicateDetection) $('#toggleDup').classList.remove('on');
+  if (config.simulateMode) $('#toggleSimulate').classList.add('on');
+  $('#settingApiUrl').value = config.llmApiUrl || '';
+  $('#settingApiKey').value = config.llmApiKey || '';
+  $('#settingModel').value = config.llmModel || '';
+  if (config.lastScanPath) {
+    $('#topbarSub').textContent = config.lastScanPath;
+  }
+}
+
+$('#settingTopN').addEventListener('change', () => {
+  const v = Math.max(5, Math.min(100, parseInt($('#settingTopN').value) || 15));
+  window.api.setConfig({ topN: v });
+});
+
+$('#settingApiUrl').addEventListener('change', () => window.api.setConfig({ llmApiUrl: $('#settingApiUrl').value }));
+$('#settingApiKey').addEventListener('change', () => window.api.setConfig({ llmApiKey: $('#settingApiKey').value }));
+$('#settingModel').addEventListener('change', () => window.api.setConfig({ llmModel: $('#settingModel').value }));
+
+// ─── LLM ───
+$('#btnAIStart').addEventListener('click', () => {
+  if (!scanResult) { alert('请先完成扫描'); return; }
+  $('#aiOutput').innerHTML = '';
+  $('#btnAIStart').disabled = true;
+  $('#btnAIStop').disabled = false;
+  window.api.analyzeLLM(scanResult);
+});
+
+$('#btnAIStop').addEventListener('click', () => {
+  window.api.stopLLM();
+  $('#btnAIStart').disabled = false;
+  $('#btnAIStop').disabled = true;
+});
+
+$('#btnAIClear').addEventListener('click', () => {
+  $('#aiOutput').innerHTML = '<span class="text-muted">点击「开始分析」，AI 将根据扫描结果给出智能清理建议</span>';
+});
+
+$('#btnAICopy').addEventListener('click', () => {
+  const text = $('#aiOutput').textContent;
+  navigator.clipboard.writeText(text);
+});
+
+$('#btnAIExport').addEventListener('click', () => {
+  const text = $('#aiOutput').textContent;
+  window.api.exportMD(text);
+});
+
+window.api.onLLMStream((token) => {
+  const output = $('#aiOutput');
+  // Simple markdown rendering
+  let html = token
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+  output.innerHTML += html;
+  output.scrollTop = output.scrollHeight;
+});
+
+window.api.onLLMDone(() => {
+  $('#btnAIStart').disabled = false;
+  $('#btnAIStop').disabled = true;
+});
+
+window.api.onLLMError((err) => {
+  $('#btnAIStart').disabled = false;
+  $('#btnAIStop').disabled = true;
+  $('#aiOutput').innerHTML += `<br><span class="text-danger">错误: ${err}</span>`;
+});
+
+$('#btnTestLLM').addEventListener('click', async () => {
+  const btn = $('#btnTestLLM');
+  btn.textContent = '测试中...';
+  btn.disabled = true;
+  const result = await window.api.testLLM();
+  btn.disabled = false;
+  if (result.ok) {
+    btn.textContent = '连接成功';
+    btn.style.color = 'var(--success)';
+    setTimeout(() => { btn.textContent = '测试连接'; btn.style.color = ''; }, 2000);
+  } else {
+    btn.textContent = '连接失败';
+    btn.style.color = 'var(--danger)';
+    setTimeout(() => { btn.textContent = '测试连接'; btn.style.color = ''; }, 2000);
+  }
+});
+
+// ─── History clear ───
+$('#btnHistoryClear').addEventListener('click', async () => {
+  if (confirm('确定清除所有扫描历史？')) {
+    await window.api.clearHistory();
+    populateHistory();
+  }
+});
+
+// ─── Keyboard shortcuts ───
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F5') { e.preventDefault(); $('#btnScan').click(); }
+  if (e.key === 'Escape') { window.api.stopScan(); }
+  if (e.ctrlKey && e.key >= '1' && e.key <= '7') {
+    e.preventDefault();
+    const tabs = ['overview','large-files','duplicates','temp-files','ai-clean','history','settings'];
+    showPanel(tabs[parseInt(e.key) - 1]);
+  }
+});
+
+// ─── Init ───
+loadSettings();
+
+// Expose for settings toggles
+window.app = {
+  toggleTheme: () => setTheme(currentTheme === 'light' ? 'dark' : 'light'),
+  toggleSetting: (key, el) => {
+    el.classList.toggle('on');
+    window.api.setConfig({ [key]: el.classList.contains('on') });
+  },
+};
+</script>
+</body>
+</html>

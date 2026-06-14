@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 >nul 2>&1
-title 磁盘分析器 v2 - 打包工具
+title 磁盘分析器 v3 - Electron 打包工具
 setlocal enabledelayedexpansion
 
 echo.
 echo  ==========================================
-echo    磁盘分析器 v2  一键打包
+echo    磁盘分析器 v3  Electron 打包
 echo  ==========================================
 echo.
 
@@ -13,73 +13,77 @@ cd /d "%~dp0"
 echo  [信息] 工作目录: %cd%
 echo.
 
-:: ---- 检查 Python ----
-echo  [1/5] 检查 Python...
-python --version
-if errorlevel 1 (
+:: ---- 检查 Node.js ----
+echo  [1/5] 检查 Node.js...
+where node >nul 2>nul
+if %errorlevel% neq 0 (
     echo.
-    echo  [错误] 未找到 Python！
-    echo  请安装 Python 3.9+: https://www.python.org/downloads/
-    echo  安装时勾选 "Add Python to PATH"
+    echo  [错误] 未找到 Node.js！
+    echo  请安装 Node.js 18+: https://nodejs.org/
     goto :fail
 )
+for /f "tokens=*" %%i in ('node -v') do echo        Node.js: %%i
+for /f "tokens=*" %%i in ('npm -v') do echo        npm: %%i
 echo.
 
-:: ---- 跳过 venv，直接用当前 Python 安装 ----
-echo  [2/5] 安装依赖包（使用当前 Python 环境）...
-echo         正在安装 psutil, requests, send2trash, xxhash, pyinstaller...
-echo         请耐心等待，可能需要 1~3 分钟...
+:: ---- 安装依赖 ----
+echo  [2/5] 检查依赖...
+if not exist "node_modules" (
+    echo        正在安装依赖，请耐心等待...
+    call npm install
+    if %errorlevel% neq 0 (
+        echo  [错误] 依赖安装失败
+        goto :fail
+    )
+) else (
+    echo        依赖已存在，跳过安装
+)
+echo  [OK] 依赖就绪
 echo.
 
-python -m pip install --upgrade pip 2>nul
-python -m pip install psutil requests send2trash xxhash pyinstaller
-if errorlevel 1 (
-    echo.
-    echo  [错误] 安装依赖失败
+:: ---- 构建 TypeScript ----
+echo  [3/5] 构建 TypeScript...
+call npm run build
+if %errorlevel% neq 0 (
+    echo  [错误] 构建失败
     goto :fail
 )
-echo.
-echo  [OK] 依赖安装完成
+echo  [OK] 构建完成
 echo.
 
 :: ---- 清理旧构建 ----
-echo  [3/5] 清理旧构建...
-if exist "build" rmdir /s /q "build"
-if exist "dist" rmdir /s /q "dist"
-if exist "*.spec" del /q "*.spec"
+echo  [4/5] 清理旧构建...
+if exist "out" rmdir /s /q "out"
 echo  [OK] 清理完成
 echo.
 
-:: ---- PyInstaller 打包 ----
-echo  [4/5] 正在打包为 exe，请耐心等待...
-echo         这个过程通常需要 1~3 分钟。
+:: ---- 打包 ----
+echo  [5/5] 正在打包 Windows 版本...
+echo         这个过程通常需要 2~5 分钟（首次较慢）。
 echo.
 
-pyinstaller --noconfirm --onefile --windowed --name "DiskAnalyzer" --hidden-import psutil --hidden-import send2trash --hidden-import xxhash --hidden-import requests --hidden-import requests.adapters --hidden-import urllib3 --collect-submodules requests disk_analyzer_v2.py
-
-if errorlevel 1 (
-    echo.
+call npx electron-forge make --platform win32
+if %errorlevel% neq 0 (
     echo  [错误] 打包失败
     goto :fail
 )
 
 :: ---- 完成 ----
 echo.
-echo  [5/5] 打包完成！
-echo.
 echo  ==========================================
-echo    输出文件: dist\DiskAnalyzer.exe
+echo    打包完成！
 echo  ==========================================
 echo.
 
-if exist "dist\DiskAnalyzer.exe" (
-    for %%f in (dist\DiskAnalyzer.exe) do (
-        set /a sizeKB=%%~zf / 1024
-        echo    大小: !sizeKB! KB
-    )
+if exist "out\make" (
+    echo  输出文件:
+    dir /s /b out\make\*.exe 2>nul
+    dir /s /b out\make\*.msi 2>nul
+    dir /s /b out\make\*.zip 2>nul
+    dir /s /b out\make\*.deb 2>nul
     echo.
     echo  正在打开输出目录...
-    start explorer dist
+    start explorer out\make
 )
 
 echo.

@@ -8,6 +8,10 @@ dist/
 build/
 *.egg
 
+# Node.js / Electron
+node_modules/
+out/
+
 # Virtual environments
 .venv/
 venv/
