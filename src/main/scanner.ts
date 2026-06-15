@@ -22,6 +22,7 @@ const WIN_SKIP_DIRS = new Set([
 interface ScanOptions {
   topN?: number;
   excludeDirs?: string[];
+  customJunkDirs?: string[];
   enableDuplicateDetection?: boolean;
   onProgress?: (progress: ScanProgress) => void;
   signal?: AbortSignal;
@@ -30,6 +31,7 @@ interface ScanOptions {
 export class Scanner {
   private topN: number;
   private excludeDirs: string[];
+  private customJunkDirs: string[];
   private enableDup: boolean;
   private onProgress?: (progress: ScanProgress) => void;
   private signal?: AbortSignal;
@@ -59,6 +61,7 @@ export class Scanner {
   constructor(options: ScanOptions = {}) {
     this.topN = options.topN ?? TOP_N;
     this.excludeDirs = options.excludeDirs ?? [];
+    this.customJunkDirs = options.customJunkDirs ?? [];
     this.enableDup = options.enableDuplicateDetection ?? true;
     this.onProgress = options.onProgress;
     this.signal = options.signal;
@@ -118,10 +121,11 @@ export class Scanner {
   private async walkDir(dirPath: string, depth: number): Promise<number> {
     if (this.aborted || depth > MAX_DEPTH) return 0;
 
-    // Skip excluded dirs
+    // Skip excluded dirs (boundary-aware: /home/user must not match /home/username)
     const normalized = this.normalizePath(dirPath);
     for (const ex of this.excludeDirs) {
-      if (normalized.startsWith(this.normalizePath(ex))) return 0;
+      const normEx = this.normalizePath(ex);
+      if (normalized === normEx || normalized.startsWith(normEx + path.sep)) return 0;
     }
 
     // Skip Windows system dirs
@@ -181,11 +185,11 @@ export class Scanner {
 
           // Track large files for duplicate detection
           if (size >= DUP_MIN_SIZE) {
-            this.largeFiles.set(fullPath, [size, stat.mtimeMs]);
+            this.largeFiles.set(fullPath, [size, Math.floor(stat.mtimeMs / 1000)]);
           }
 
           // Maintain top files
-          this.maintainTopFiles(fullPath, size, stat.mtimeMs);
+          this.maintainTopFiles(fullPath, size, Math.floor(stat.mtimeMs / 1000));
 
           // Report progress
           this.reportProgress(fullPath);
@@ -371,6 +375,11 @@ export class Scanner {
       paths.push(path.join(home, '.local', 'share', 'Trash'));
       paths.push('/tmp');
       paths.push('/var/tmp');
+    }
+
+    // Append user-configured custom junk dirs
+    for (const custom of this.customJunkDirs) {
+      if (custom && !paths.includes(custom)) paths.push(custom);
     }
 
     return paths;

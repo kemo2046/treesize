@@ -10,6 +10,7 @@ import { IPC, ScanResult, DiskInfo, HistoryEntry } from '../shared/types';
 let mainWindow: BrowserWindow | null = null;
 let currentScanner: Scanner | null = null;
 let llmAnalyzer: LLMAnalyzer | null = null;
+let llmGeneration = 0;
 const configManager = new ConfigManager();
 
 function createWindow(): void {
@@ -169,22 +170,27 @@ async function getLinuxMounts(): Promise<string[]> {
 
 // Scan
 ipcMain.on(IPC.SCAN_START, (event, scanPath: string) => {
-  // Abort any in-progress scan (Bug #2)
+  // Abort any in-progress scan
   currentScanner?.abort();
   currentScanner = null;
 
   const config = configManager.get();
 
-  currentScanner = new Scanner({
+  const scanner = new Scanner({
     topN: config.topN,
     excludeDirs: config.excludeDirs,
+    customJunkDirs: config.customJunkDirs,
     enableDuplicateDetection: config.duplicateDetection,
     onProgress: (progress) => {
       mainWindow?.webContents.send(IPC.SCAN_PROGRESS, progress);
     },
   });
+  currentScanner = scanner;
 
-  currentScanner.scan(scanPath).then((result) => {
+  scanner.scan(scanPath).then((result) => {
+    // Ignore stale results from aborted scans
+    if (currentScanner !== scanner) return;
+
     // Save to history
     const entry: HistoryEntry = {
       timestamp: Date.now(),
@@ -201,6 +207,8 @@ ipcMain.on(IPC.SCAN_START, (event, scanPath: string) => {
     mainWindow?.webContents.send(IPC.SCAN_RESULT, result);
     currentScanner = null;
   }).catch((err) => {
+    // Ignore errors from aborted scans
+    if (currentScanner !== scanner) return;
     mainWindow?.webContents.send(IPC.SCAN_ERROR, err.message);
     currentScanner = null;
   });
@@ -212,12 +220,15 @@ ipcMain.on(IPC.SCAN_STOP, () => {
 
 // File operations
 ipcMain.handle(IPC.FILE_OPEN, async (_event, filePath: string) => {
-  await shell.openPath(filePath);
+  const result = await shell.openPath(filePath);
+  if (result) return { success: false, error: result };
+  return { success: true };
 });
 
 ipcMain.handle(IPC.FILE_OPEN_DIR, async (_event, filePath: string) => {
   // showItemInFolder works on all platforms (Win: Explorer, Mac: Finder, Linux: file manager)
   shell.showItemInFolder(filePath);
+  return { success: true };
 });
 
 ipcMain.handle(IPC.FILE_REVEAL, async (_event, filePath: string) => {
@@ -257,6 +268,13 @@ ipcMain.on(IPC.LLM_ANALYZE, async (_event, scanResult: ScanResult) => {
       return;
     }
 
+    // Abort any in-progress analysis
+    if (llmAnalyzer) {
+      llmAnalyzer.stop();
+      llmAnalyzer = null;
+    }
+
+    const gen = ++llmGeneration;
     llmAnalyzer = new LLMAnalyzer();
 
     await llmAnalyzer.analyze(scanResult, {
@@ -265,13 +283,16 @@ ipcMain.on(IPC.LLM_ANALYZE, async (_event, scanResult: ScanResult) => {
       model: config.llmModel,
       temperature: config.llmTemperature,
       onToken: (token) => {
+        if (llmGeneration !== gen) return;
         mainWindow?.webContents.send(IPC.LLM_STREAM, token);
       },
       onDone: () => {
+        if (llmGeneration !== gen) return;
         mainWindow?.webContents.send(IPC.LLM_DONE);
         llmAnalyzer = null;
       },
       onError: (error) => {
+        if (llmGeneration !== gen) return;
         mainWindow?.webContents.send(IPC.LLM_ERROR, error);
         llmAnalyzer = null;
       },
@@ -284,6 +305,7 @@ ipcMain.on(IPC.LLM_ANALYZE, async (_event, scanResult: ScanResult) => {
 });
 
 ipcMain.on(IPC.LLM_STOP, () => {
+  llmGeneration++;
   llmAnalyzer?.stop();
   llmAnalyzer = null;
 });

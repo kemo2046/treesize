@@ -33,10 +33,10 @@ contextBridge.exposeInMainWorld('api', {
     safeOn(IPC.SCAN_PROGRESS, callback as (...args: unknown[]) => void);
   },
   onScanResult: (callback: (result: ScanResult) => void) => {
-    safeOnce(IPC.SCAN_RESULT, callback as (...args: unknown[]) => void);
+    safeOn(IPC.SCAN_RESULT, callback as (...args: unknown[]) => void);
   },
   onScanError: (callback: (error: string) => void) => {
-    safeOnce(IPC.SCAN_ERROR, callback as (...args: unknown[]) => void);
+    safeOn(IPC.SCAN_ERROR, callback as (...args: unknown[]) => void);
   },
 
   // File operations
@@ -53,10 +53,10 @@ contextBridge.exposeInMainWorld('api', {
     safeOn(IPC.LLM_STREAM, callback as (...args: unknown[]) => void);
   },
   onLLMDone: (callback: () => void) => {
-    safeOnce(IPC.LLM_DONE, callback as (...args: unknown[]) => void);
+    safeOn(IPC.LLM_DONE, callback as (...args: unknown[]) => void);
   },
   onLLMError: (callback: (error: string) => void) => {
-    safeOnce(IPC.LLM_ERROR, callback as (...args: unknown[]) => void);
+    safeOn(IPC.LLM_ERROR, callback as (...args: unknown[]) => void);
   },
   testLLM: (): Promise<{ ok: boolean; models?: string[]; error?: string }> =>
     ipcRenderer.invoke(IPC.LLM_TEST),

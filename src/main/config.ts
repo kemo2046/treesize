@@ -76,7 +76,8 @@ export class ConfigManager {
   private loadHistory(): HistoryEntry[] {
     try {
       if (fs.existsSync(HISTORY_FILE)) {
-        return JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+        const data = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+        return Array.isArray(data) ? data : [];
       }
     } catch {
       // Ignore corrupt history

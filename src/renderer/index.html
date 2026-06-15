@@ -768,25 +768,6 @@ $('#scanPathInput').addEventListener('keydown', (e) => {
 });
 
 function startScan(path) {
-  // Re-register one-shot listeners for this scan
-  window.api.onScanResult((result) => {
-    scanResult = result;
-    $('#scanBar').classList.add('hidden');
-    $('#overviewContent').style.display = 'block';
-    $('#emptyState').style.display = 'none';
-    populateOverview(result);
-    populateLargeFiles(result);
-    populateDuplicates(result);
-    populateTempFiles(result);
-    populateHistory();
-    updateSidebar(result);
-  });
-
-  window.api.onScanError((err) => {
-    $('#scanBar').classList.add('hidden');
-    alert('扫描错误: ' + err);
-  });
-
   $('#scanBar').classList.remove('hidden');
   $('#emptyState').style.display = 'none';
   $('#overviewContent').style.display = 'none';
@@ -800,6 +781,24 @@ window.api.onScanProgress((p) => {
   $('#scanItems').textContent = p.scannedItems.toLocaleString();
   $('#scanSize').textContent = formatSize(p.scannedSize);
   $('#scanElapsed').textContent = p.elapsed.toFixed(1);
+});
+
+window.api.onScanResult((result) => {
+  scanResult = result;
+  $('#scanBar').classList.add('hidden');
+  $('#overviewContent').style.display = 'block';
+  $('#emptyState').style.display = 'none';
+  populateOverview(result);
+  populateLargeFiles(result);
+  populateDuplicates(result);
+  populateTempFiles(result);
+  populateHistory();
+  updateSidebar(result);
+});
+
+window.api.onScanError((err) => {
+  $('#scanBar').classList.add('hidden');
+  alert('扫描错误: ' + err);
 });
 
 // ─── Populate Overview ───
@@ -883,8 +882,27 @@ function drawDonut(extStats, totalUsed) {
     offset += dashLen;
   });
 
-  // Center
-  svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r - sw/2}" class="donut-center"/><text x="${cx}" y="${cy - 6}" class="donut-label">${formatSize(totalUsed)}</text><text x="${cx}" y="${cy + 12}" class="donut-sublabel">已使用</text>`;
+  // Center (use createElementNS to preserve SVG namespace)
+  const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  centerCircle.setAttribute('cx', cx);
+  centerCircle.setAttribute('cy', cy);
+  centerCircle.setAttribute('r', r - sw / 2);
+  centerCircle.setAttribute('class', 'donut-center');
+  svg.appendChild(centerCircle);
+
+  const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  label.setAttribute('x', cx);
+  label.setAttribute('y', cy - 6);
+  label.setAttribute('class', 'donut-label');
+  label.textContent = formatSize(totalUsed);
+  svg.appendChild(label);
+
+  const sublabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  sublabel.setAttribute('x', cx);
+  sublabel.setAttribute('y', cy + 12);
+  sublabel.setAttribute('class', 'donut-sublabel');
+  sublabel.textContent = '已使用';
+  svg.appendChild(sublabel);
 
   // Legend
   legend.innerHTML = top.map(([name, size], i) => {
@@ -896,6 +914,8 @@ function drawDonut(extStats, totalUsed) {
 // ─── Populate Large Files ───
 function populateLargeFiles(r) {
   largeFilesPage = 0;
+  filteredLargeFiles = null;
+  $('#searchLargeFiles').value = '';
   renderLargeFilesPage();
   $('#largeFilesTitle').textContent = `${r.topFiles.length} 个大文件，总计 ${formatSize(r.topFiles.reduce((s, [,sz]) => s + sz, 0))}`;
   $('#badgeLargeFiles').textContent = r.topFiles.length;
@@ -1049,6 +1069,7 @@ async function loadSettings() {
 
 $('#settingTopN').addEventListener('change', () => {
   const v = Math.max(5, Math.min(100, parseInt($('#settingTopN').value) || 15));
+  $('#settingTopN').value = v;
   window.api.setConfig({ topN: v });
 });
 
@@ -1066,18 +1087,17 @@ $('#btnAIStart').addEventListener('click', () => {
   $('#btnAIStart').disabled = true;
   $('#btnAIStop').disabled = false;
   window.api.analyzeLLM(scanResult);
+});
 
-  // Re-register one-shot done/error listeners
-  window.api.onLLMDone(() => {
-    $('#btnAIStart').disabled = false;
-    $('#btnAIStop').disabled = true;
-  });
+window.api.onLLMDone(() => {
+  $('#btnAIStart').disabled = false;
+  $('#btnAIStop').disabled = true;
+});
 
-  window.api.onLLMError((err) => {
-    $('#btnAIStart').disabled = false;
-    $('#btnAIStop').disabled = true;
-    $('#aiOutput').innerHTML += `<br><span class="text-danger">错误: ${escapeHtml(String(err))}</span>`;
-  });
+window.api.onLLMError((err) => {
+  $('#btnAIStart').disabled = false;
+  $('#btnAIStop').disabled = true;
+  $('#aiOutput').innerHTML += `<br><span class="text-danger">错误: ${escapeHtml(String(err))}</span>`;
 });
 
 $('#btnAIStop').addEventListener('click', () => {
@@ -1205,7 +1225,7 @@ document.addEventListener('click', () => {
 
 document.addEventListener('contextmenu', (e) => {
   // Close menu on right-click elsewhere
-  if (!e.target.closest('tr[data-path]') && !e.target.closest('.dup-file')) {
+  if (!e.target.closest('tr[data-path]') && !e.target.closest('.dup-file') && !e.target.closest('.clean-cat-path')) {
     $('#ctxMenu').classList.remove('show');
   }
 });
