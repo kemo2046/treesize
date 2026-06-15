@@ -584,7 +584,7 @@ td input[type="checkbox"] { accent-color: var(--accent); }
         </div>
         <div class="settings-row">
           <div><div class="settings-label">重复文件检测</div><div class="settings-desc">扫描时检测重复文件 (>= 100MB)</div></div>
-          <div class="settings-control"><div class="toggle on" id="toggleDup" onclick="window.app.toggleSetting('duplicateDetection', this)"></div></div>
+          <div class="settings-control"><div class="toggle" id="toggleDup" onclick="window.app.toggleSetting('duplicateDetection', this)"></div></div>
         </div>
         <div class="settings-row">
           <div><div class="settings-label">模拟预览模式</div><div class="settings-desc">开启后删除操作仅预览不执行</div></div>
@@ -684,6 +684,10 @@ function relativeDate(mtime) {
   if (days < 30) return `${Math.floor(days/7)}周前`;
   if (days < 365) return `${Math.floor(days/30)}月前`;
   return `${Math.floor(days/365)}年前`;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ─── Navigation ───
@@ -821,7 +825,7 @@ async function populateOverview(r) {
   drawDonut(r.extStats, r.totalUsed);
 
   // Health bars
-  const dupWasted = r.duplicates.reduce((s, [sz, paths]) => s + sz * (paths.length - 1), 0);
+  const dupWasted = r.duplicates.reduce((s, [sz, , paths]) => s + sz * (paths.length - 1), 0);
   const cleanPct = ((cleanable / r.totalUsed) * 100).toFixed(1);
   const dupPct = ((dupWasted / r.totalUsed) * 100).toFixed(1);
   const healthColor = pct < 75 ? 'var(--success)' : pct < 90 ? 'var(--warning)' : 'var(--danger)';
@@ -840,9 +844,9 @@ async function populateOverview(r) {
   const tbody = $('#tableTopDirs tbody');
   tbody.innerHTML = r.topDirs.map(([dirPath, size], i) => {
     const barPct = ((size / maxDirSize) * 100).toFixed(0);
-    const dirName = dirPath.split(/[\\/]/).pop() || dirPath;
+    const ep = escapeHtml(dirPath);
     const tag = dirPath.match(/cache|temp|log|backup/i) ? '<span class="tag tag-warning">可清理</span>' : '<span class="tag tag-accent">目录</span>';
-    return `<tr data-path="${dirPath}" oncontextmenu="showCtxMenu(event,'${dirPath.replace(/'/g,"\\'")}')"><td>${i+1}</td><td class="file-path" title="${dirPath}">${dirPath}</td><td>${tag}</td><td class="file-size">${formatSize(size)}</td><td><div class="file-bar"><div class="file-bar-fill" style="width:${barPct}%;background:var(--accent)"></div></div></td></tr>`;
+    return `<tr data-path="${ep}" oncontextmenu="showCtxMenu(event,this.dataset.path)"><td>${i+1}</td><td class="file-path" title="${ep}">${ep}</td><td>${tag}</td><td class="file-size">${formatSize(size)}</td><td><div class="file-bar"><div class="file-bar-fill" style="width:${barPct}%;background:var(--accent)"></div></div></td></tr>`;
   }).join('');
 }
 
@@ -907,11 +911,12 @@ function renderLargeFilesPage() {
 
   const tbody = $('#tableLargeFiles tbody');
   tbody.innerHTML = page.map(([filePath, size, mtime]) => {
-    const name = filePath.split(/[\\/]/).pop() || filePath;
+    const name = escapeHtml(filePath.split(/[\\/]/).pop() || filePath);
     const ext = getExt(filePath);
     const barPct = ((size / max) * 100).toFixed(0);
     const date = new Date(mtime * 1000).toLocaleDateString('zh-CN');
-    return `<tr data-path="${filePath}" oncontextmenu="showCtxMenu(event,'${filePath.replace(/'/g,"\\'")}')"><td class="file-name">${name}</td><td class="file-path" title="${filePath}">${filePath}</td><td>${getExtTag(ext)}</td><td>${date}</td><td class="file-size">${formatSize(size)}</td></tr>`;
+    const ep = escapeHtml(filePath);
+    return `<tr data-path="${ep}" oncontextmenu="showCtxMenu(event,this.dataset.path)"><td class="file-name">${name}</td><td class="file-path" title="${ep}">${ep}</td><td>${getExtTag(ext)}</td><td>${date}</td><td class="file-size">${formatSize(size)}</td></tr>`;
   }).join('');
 
   $('#pageInfo').textContent = `显示 ${start+1}-${Math.min(start+PAGE_SIZE, files.length)} / 共 ${files.length} 项`;
@@ -936,7 +941,7 @@ $('#searchLargeFiles').addEventListener('input', (e) => {
 
 // ─── Populate Duplicates ───
 function populateDuplicates(r) {
-  const totalWasted = r.duplicates.reduce((s, [sz, paths]) => s + sz * (paths.length - 1), 0);
+  const totalWasted = r.duplicates.reduce((s, [sz, , paths]) => s + sz * (paths.length - 1), 0);
   $('#dupTitle').textContent = `${r.duplicates.length} 组重复文件，可释放 ${formatSize(totalWasted)}`;
   $('#badgeDuplicates').textContent = r.duplicates.length;
   $('#badgeDuplicates').style.display = 'inline';
@@ -947,12 +952,13 @@ function populateDuplicates(r) {
     return;
   }
 
-  container.innerHTML = r.duplicates.map(([size, paths], gi) => {
-    const name = paths[0].split(/[\\/]/).pop() || paths[0];
+  container.innerHTML = r.duplicates.map(([size, mtime, paths], gi) => {
+    const name = escapeHtml(paths[0].split(/[\\/]/).pop() || paths[0]);
     const wasted = size * (paths.length - 1);
+    const date = new Date(mtime * 1000).toLocaleDateString('zh-CN');
     const files = paths.map(p => {
-      const date = new Date().toLocaleDateString('zh-CN');
-      return `<div class="dup-file" oncontextmenu="showCtxMenu(event,'${p.replace(/'/g,"\\'")}')"><input type="checkbox" data-path="${p}"><span class="file-path" title="${p}">${p}</span><span class="text-muted">${date}</span><span class="file-size">${formatSize(size)}</span><span class="tag tag-warning">建议删除</span></div>`;
+      const ep = escapeHtml(p);
+      return `<div class="dup-file" oncontextmenu="showCtxMenu(event,this.querySelector('input').dataset.path)"><input type="checkbox" data-path="${ep}"><span class="file-path" title="${ep}">${ep}</span><span class="text-muted">${date}</span><span class="file-size">${formatSize(size)}</span><span class="tag tag-warning">建议删除</span></div>`;
     }).join('');
 
     return `<div class="dup-group"><div class="dup-group-header" onclick="this.querySelector('.chevron').classList.toggle('open');this.nextElementSibling.classList.toggle('collapsed')"><svg class="chevron open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><strong>${name}</strong><div class="dup-group-meta"><span class="tag tag-accent">${paths.length} 个副本</span><span>每份 ${formatSize(size)}</span><span class="text-danger">可节省 ${formatSize(wasted)}</span></div></div><div class="dup-group-body">${files}</div></div>`;
@@ -971,8 +977,9 @@ function populateTempFiles(r) {
   }
 
   container.innerHTML = r.junkDirs.map(([junkPath, size], i) => {
-    const name = junkPath.split(/[\\/]/).pop() || junkPath;
-    return `<div class="clean-cat"><div class="clean-cat-header" onclick="this.nextElementSibling.classList.toggle('show')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>${name}</span><span class="file-size" style="margin-left:auto">${formatSize(size)}</span></div><div class="clean-cat-body"><div class="clean-cat-path" oncontextmenu="showCtxMenu(event,'${junkPath.replace(/'/g,"\\'")}')">${junkPath}</div></div></div>`;
+    const name = escapeHtml(junkPath.split(/[\\/]/).pop() || junkPath);
+    const ej = escapeHtml(junkPath);
+    return `<div class="clean-cat"><div class="clean-cat-header" onclick="this.nextElementSibling.classList.toggle('show')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>${name}</span><span class="file-size" style="margin-left:auto">${formatSize(size)}</span></div><div class="clean-cat-body"><div class="clean-cat-path" oncontextmenu="showCtxMenu(event,this.textContent)">${ej}</div></div></div>`;
   }).join('');
 }
 
@@ -1009,7 +1016,7 @@ async function populateHistory() {
   timeline.innerHTML = history.slice(-10).reverse().map((e, i) => {
     const date = new Date(e.timestamp).toLocaleString('zh-CN');
     const dotClass = i === 0 ? '' : i < 3 ? 'success' : 'warning';
-    return `<div class="timeline-item"><div class="timeline-dot ${dotClass}"></div><div class="timeline-date">${date}</div><div class="timeline-card"><div class="timeline-title">${e.scanPath}</div><div class="timeline-desc">扫描完成</div><div class="timeline-stats"><span>文件数: <strong>${e.scannedItems.toLocaleString()}</strong></span><span>耗时: <strong>${e.scanTime.toFixed(1)}s</strong></span><span>可清理: <strong>${formatSize(e.cleanableSize)}</strong></span></div></div></div>`;
+    return `<div class="timeline-item"><div class="timeline-dot ${dotClass}"></div><div class="timeline-date">${date}</div><div class="timeline-card"><div class="timeline-title">${escapeHtml(e.scanPath)}</div><div class="timeline-desc">扫描完成</div><div class="timeline-stats"><span>文件数: <strong>${e.scannedItems.toLocaleString()}</strong></span><span>耗时: <strong>${e.scanTime.toFixed(1)}s</strong></span><span>可清理: <strong>${formatSize(e.cleanableSize)}</strong></span></div></div></div>`;
   }).join('');
 }
 
@@ -1030,7 +1037,7 @@ async function loadSettings() {
   const config = await window.api.getConfig();
   if (config.theme === 'dark') setTheme('dark');
   $('#settingTopN').value = config.topN;
-  if (!config.duplicateDetection) $('#toggleDup').classList.remove('on');
+  if (config.duplicateDetection) $('#toggleDup').classList.add('on');
   if (config.simulateMode) $('#toggleSimulate').classList.add('on');
   $('#settingApiUrl').value = config.llmApiUrl || '';
   $('#settingApiKey').value = config.llmApiKey || '';
@@ -1069,7 +1076,7 @@ $('#btnAIStart').addEventListener('click', () => {
   window.api.onLLMError((err) => {
     $('#btnAIStart').disabled = false;
     $('#btnAIStop').disabled = true;
-    $('#aiOutput').innerHTML += `<br><span class="text-danger">错误: ${err}</span>`;
+    $('#aiOutput').innerHTML += `<br><span class="text-danger">错误: ${escapeHtml(String(err))}</span>`;
   });
 });
 

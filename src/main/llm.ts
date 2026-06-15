@@ -183,12 +183,12 @@ export class LLMAnalyzer {
     lines.push('');
 
     if (result.duplicates.length > 0) {
-      const totalWasted = result.duplicates.reduce((sum, [size, paths]) => sum + size * (paths.length - 1), 0);
+      const totalWasted = result.duplicates.reduce((sum, [size, , paths]) => sum + size * (paths.length - 1), 0);
       lines.push(`## 重复文件`);
       lines.push(`- 共 ${result.duplicates.length} 组重复文件`);
       lines.push(`- 浪费空间: ${formatSize(totalWasted)}`);
       lines.push('');
-      for (const [size, paths] of result.duplicates.slice(0, 5)) {
+      for (const [size, , paths] of result.duplicates.slice(0, 5)) {
         lines.push(`### ${paths[0].split(/[\\/]/).pop()} (${paths.length} 个副本, 每份 ${formatSize(size)})`);
         for (const p of paths) {
           lines.push(`- ${p}`);

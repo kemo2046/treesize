@@ -69,8 +69,8 @@ function createWindow(): void {
 ipcMain.handle('app:homedir', () => os.homedir());
 ipcMain.handle('app:getPath', (_event, name: string) => app.getPath(name as any));
 ipcMain.handle('app:showOpenDialog', async (_event, options: Electron.OpenDialogOptions) => {
-  const result = await dialog.showOpenDialog(mainWindow!, options);
-  return result;
+  if (!mainWindow) return { canceled: true, filePaths: [] };
+  return dialog.showOpenDialog(mainWindow, options);
 });
 
 // Disk info
@@ -146,17 +146,21 @@ ipcMain.handle(IPC.DISK_INFO, async (): Promise<DiskInfo[]> => {
 async function getLinuxMounts(): Promise<string[]> {
   try {
     const content = await fs.promises.readFile('/proc/mounts', 'utf-8');
+    const seen = new Set<string>();
     const mounts: string[] = [];
     for (const line of content.split('\n')) {
       const parts = line.split(' ');
       if (parts.length >= 2) {
-        const mountPoint = parts[1];
-        // Only real filesystems
-        if (mountPoint.startsWith('/') && !mountPoint.startsWith('/proc') && !mountPoint.startsWith('/sys') && !mountPoint.startsWith('/dev')) {
+        // Decode kernel octal escapes (e.g. \040 for space)
+        const mountPoint = parts[1].replace(/\\(\d{3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)));
+        if (mountPoint.startsWith('/') && !mountPoint.startsWith('/proc') && !mountPoint.startsWith('/sys') && !mountPoint.startsWith('/dev') && !seen.has(mountPoint)) {
+          seen.add(mountPoint);
           mounts.push(mountPoint);
         }
       }
     }
+    // Sort by path length descending so most-specific mountpoints match first
+    mounts.sort((a, b) => b.length - a.length);
     return mounts.length > 0 ? mounts : ['/'];
   } catch {
     return ['/'];
@@ -165,6 +169,10 @@ async function getLinuxMounts(): Promise<string[]> {
 
 // Scan
 ipcMain.on(IPC.SCAN_START, (event, scanPath: string) => {
+  // Abort any in-progress scan (Bug #2)
+  currentScanner?.abort();
+  currentScanner = null;
+
   const config = configManager.get();
 
   currentScanner = new Scanner({
@@ -208,13 +216,8 @@ ipcMain.handle(IPC.FILE_OPEN, async (_event, filePath: string) => {
 });
 
 ipcMain.handle(IPC.FILE_OPEN_DIR, async (_event, filePath: string) => {
-  if (process.platform === 'win32') {
-    shell.showItemInFolder(filePath);
-  } else if (process.platform === 'darwin') {
-    await shell.openPath(filePath);
-  } else {
-    await shell.openPath(path.dirname(filePath));
-  }
+  // showItemInFolder works on all platforms (Win: Explorer, Mac: Finder, Linux: file manager)
+  shell.showItemInFolder(filePath);
 });
 
 ipcMain.handle(IPC.FILE_REVEAL, async (_event, filePath: string) => {
@@ -228,12 +231,8 @@ ipcMain.handle(IPC.FILE_DELETE, async (_event, filePath: string, permanent: bool
 
   try {
     if (permanent) {
-      const stat = await fs.promises.stat(filePath);
-      if (stat.isDirectory()) {
-        await fs.promises.rm(filePath, { recursive: true, force: true });
-      } else {
-        await fs.promises.unlink(filePath);
-      }
+      // rm handles both files and directories — avoids TOCTOU race
+      await fs.promises.rm(filePath, { recursive: true, force: true });
     } else {
       // Move to trash
       await shell.trashItem(filePath);
@@ -251,31 +250,37 @@ ipcMain.handle(IPC.FILE_COPY_PATH, async (_event, filePath: string) => {
 
 // LLM
 ipcMain.on(IPC.LLM_ANALYZE, async (_event, scanResult: ScanResult) => {
-  const config = configManager.get();
-  if (!config.llmApiUrl || !config.llmApiKey) {
-    mainWindow?.webContents.send(IPC.LLM_ERROR, '请先配置 LLM API 地址和密钥');
-    return;
+  try {
+    const config = configManager.get();
+    if (!config.llmApiUrl || !config.llmApiKey) {
+      mainWindow?.webContents.send(IPC.LLM_ERROR, '请先配置 LLM API 地址和密钥');
+      return;
+    }
+
+    llmAnalyzer = new LLMAnalyzer();
+
+    await llmAnalyzer.analyze(scanResult, {
+      apiUrl: config.llmApiUrl,
+      apiKey: config.llmApiKey,
+      model: config.llmModel,
+      temperature: config.llmTemperature,
+      onToken: (token) => {
+        mainWindow?.webContents.send(IPC.LLM_STREAM, token);
+      },
+      onDone: () => {
+        mainWindow?.webContents.send(IPC.LLM_DONE);
+        llmAnalyzer = null;
+      },
+      onError: (error) => {
+        mainWindow?.webContents.send(IPC.LLM_ERROR, error);
+        llmAnalyzer = null;
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    mainWindow?.webContents.send(IPC.LLM_ERROR, message);
+    llmAnalyzer = null;
   }
-
-  llmAnalyzer = new LLMAnalyzer();
-
-  await llmAnalyzer.analyze(scanResult, {
-    apiUrl: config.llmApiUrl,
-    apiKey: config.llmApiKey,
-    model: config.llmModel,
-    temperature: config.llmTemperature,
-    onToken: (token) => {
-      mainWindow?.webContents.send(IPC.LLM_STREAM, token);
-    },
-    onDone: () => {
-      mainWindow?.webContents.send(IPC.LLM_DONE);
-      llmAnalyzer = null;
-    },
-    onError: (error) => {
-      mainWindow?.webContents.send(IPC.LLM_ERROR, error);
-      llmAnalyzer = null;
-    },
-  });
 });
 
 ipcMain.on(IPC.LLM_STOP, () => {
@@ -308,13 +313,14 @@ ipcMain.handle(IPC.HISTORY_GET, () => {
   return configManager.getHistory();
 });
 
-ipcMain.on(IPC.HISTORY_CLEAR, () => {
+ipcMain.handle(IPC.HISTORY_CLEAR, () => {
   configManager.clearHistory();
 });
 
 // Export
 ipcMain.handle(IPC.EXPORT_CSV, async (_event, scanResult: ScanResult) => {
-  const result = await dialog.showSaveDialog(mainWindow!, {
+  if (!mainWindow) return;
+  const result = await dialog.showSaveDialog(mainWindow, {
     defaultPath: 'disk_analysis.csv',
     filters: [{ name: 'CSV Files', extensions: ['csv'] }],
   });
@@ -338,7 +344,8 @@ ipcMain.handle(IPC.EXPORT_CSV, async (_event, scanResult: ScanResult) => {
 });
 
 ipcMain.handle(IPC.EXPORT_JSON, async (_event, scanResult: ScanResult) => {
-  const result = await dialog.showSaveDialog(mainWindow!, {
+  if (!mainWindow) return;
+  const result = await dialog.showSaveDialog(mainWindow, {
     defaultPath: 'disk_analysis.json',
     filters: [{ name: 'JSON Files', extensions: ['json'] }],
   });
@@ -349,7 +356,8 @@ ipcMain.handle(IPC.EXPORT_JSON, async (_event, scanResult: ScanResult) => {
 });
 
 ipcMain.handle(IPC.EXPORT_MD, async (_event, content: string) => {
-  const result = await dialog.showSaveDialog(mainWindow!, {
+  if (!mainWindow) return;
+  const result = await dialog.showSaveDialog(mainWindow, {
     defaultPath: 'ai_analysis.md',
     filters: [{ name: 'Markdown Files', extensions: ['md'] }],
   });

@@ -7,7 +7,7 @@ export interface ScanResult {
   extStats: [string, number][];
   ageGroups: Record<string, number>;
   dirSizeCache: Record<string, number>;
-  duplicates: [number, string[]][];
+  duplicates: [number, number, string[]][]; // [size, mtime, paths[]]
   totalUsed: number;
   scanTime: number;
   scannedItems: number;

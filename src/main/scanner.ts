@@ -78,7 +78,7 @@ export class Scanner {
     await this.walkDir(rootPath, 0);
 
     // Phase 2: Detect duplicates
-    let duplicates: [number, string[]][] = [];
+    let duplicates: [number, number, string[]][] = [];
     if (this.enableDup && !this.aborted) {
       duplicates = await this.detectDuplicates();
     }
@@ -249,7 +249,7 @@ export class Scanner {
 
   // --- Duplicate Detection ---
 
-  private async detectDuplicates(): Promise<[number, string[]][]> {
+  private async detectDuplicates(): Promise<[number, number, string[]][]> {
     // Phase 1: Hash first 64KB of each large file
     const hashMap = new Map<string, string[]>(); // hash -> [paths]
 
@@ -278,7 +278,7 @@ export class Scanner {
     }
 
     // Phase 2: Full hash for matching groups
-    const duplicates: [number, string[]][] = [];
+    const duplicates: [number, number, string[]][] = [];
     const fullHashMap = new Map<string, string[]>();
 
     for (const [headHash, paths] of hashMap) {
@@ -297,21 +297,27 @@ export class Scanner {
 
     for (const [_, paths] of fullHashMap) {
       if (paths.length < 2) continue;
-      const size = this.largeFiles.get(paths[0])?.[0] ?? 0;
-      duplicates.push([size, paths]);
+      const fileData = this.largeFiles.get(paths[0]);
+      const size = fileData?.[0] ?? 0;
+      const mtime = fileData?.[1] ?? 0;
+      duplicates.push([size, mtime, paths]);
     }
 
     // Sort by wasted space descending
-    duplicates.sort((a, b) => (b[0] * (b[1].length - 1)) - (a[0] * (a[1].length - 1)));
+    duplicates.sort((a, b) => (b[0] * (b[2].length - 1)) - (a[0] * (a[2].length - 1)));
     return duplicates;
   }
+
+  private static readonly HASH_ALG = (() => {
+    try { createHash('xxhash64'); return 'xxhash64'; } catch { return 'sha256'; }
+  })();
 
   private async hashFileHead(filePath: string, bytes: number): Promise<string> {
     const fd = await fs.promises.open(filePath, 'r');
     try {
       const buf = Buffer.alloc(bytes);
       const { bytesRead } = await fd.read(buf, 0, bytes, 0);
-      return createHash('xxhash64').update(buf.subarray(0, bytesRead)).digest('hex');
+      return createHash(Scanner.HASH_ALG).update(buf.subarray(0, bytesRead)).digest('hex');
     } finally {
       await fd.close();
     }
@@ -319,7 +325,7 @@ export class Scanner {
 
   private async hashFileFull(filePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const hash = createHash('xxhash64');
+      const hash = createHash(Scanner.HASH_ALG);
       const stream = fs.createReadStream(filePath);
       stream.on('data', (chunk) => hash.update(chunk));
       stream.on('end', () => resolve(hash.digest('hex')));
@@ -371,6 +377,9 @@ export class Scanner {
   }
 
   private normalizePath(p: string): string {
-    return path.normalize(p).toLowerCase().replace(/[/\\]$/, '');
+    let normalized = path.normalize(p).replace(/[/\\]$/, '');
+    // Only lowercase on Windows where paths are case-insensitive
+    if (process.platform === 'win32') normalized = normalized.toLowerCase();
+    return normalized;
   }
 }

@@ -68,7 +68,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // History
   getHistory: (): Promise<HistoryEntry[]> => ipcRenderer.invoke(IPC.HISTORY_GET),
-  clearHistory: () => ipcRenderer.send(IPC.HISTORY_CLEAR),
+  clearHistory: (): Promise<void> => ipcRenderer.invoke(IPC.HISTORY_CLEAR),
 
   // Export
   exportCSV: (scanResult: ScanResult) => ipcRenderer.invoke(IPC.EXPORT_CSV, scanResult),
