@@ -87,6 +87,7 @@ input, select, button, textarea { font: inherit; color: inherit; }
 .topbar-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
 .topbar-sub { font-size: 12px; color: var(--muted); }
 .topbar-actions { display: flex; align-items: center; gap: 8px; -webkit-app-region: no-drag; }
+.scan-input-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; -webkit-app-region: no-drag; }
 .content { flex: 1; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
 
 /* ═══════════════════════════════════════════════
@@ -332,6 +333,16 @@ td input[type="checkbox"] { accent-color: var(--accent); }
 .text-mono { font-family: var(--font-mono); }
 .flex { display: flex; } .flex-col { flex-direction: column; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .gap-8 { gap: 8px; } .gap-12 { gap: 12px; }
 .drag-bar { -webkit-app-region: drag; }
+
+/* Context Menu */
+.ctx-menu { position: fixed; z-index: 9999; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); padding: 4px 0; min-width: 160px; display: none; }
+.ctx-menu.show { display: block; }
+.ctx-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; font-size: 12.5px; cursor: pointer; transition: background var(--transition); }
+.ctx-item:hover { background: var(--surface-alt); }
+.ctx-item svg { width: 14px; height: 14px; color: var(--muted); }
+.ctx-item.danger { color: var(--danger); }
+.ctx-item.danger svg { color: var(--danger); }
+.ctx-sep { height: 1px; background: var(--border); margin: 4px 0; }
 </style>
 </head>
 <body>
@@ -394,17 +405,23 @@ td input[type="checkbox"] { accent-color: var(--accent); }
 
   <!-- TOPBAR -->
   <header class="topbar">
-    <div class="topbar-left">
+    <div class="topbar-left" style="flex:1;min-width:0">
       <span class="topbar-title" id="topbarTitle">概览</span>
-      <span class="topbar-sub" id="topbarSub"></span>
+      <div class="scan-input-bar" id="scanInputBar">
+        <select id="diskSelect" title="选择磁盘/分区" style="padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--surface);color:var(--fg);min-width:80px"></select>
+        <input type="text" id="scanPathInput" placeholder="输入扫描路径..." style="flex:1;min-width:0;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--surface);color:var(--fg)">
+        <button class="btn btn-ghost" id="btnBrowse" title="浏览文件夹">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </button>
+        <button class="btn btn-primary" id="btnScan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          扫描
+        </button>
+      </div>
     </div>
-    <div class="topbar-actions">
+    <div class="topbar-actions" style="margin-left:12px">
       <button class="btn-icon" id="btnTheme" title="切换主题">
         <svg id="iconTheme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-      <button class="btn btn-primary" id="btnScan">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        重新扫描
       </button>
     </div>
   </header>
@@ -605,6 +622,15 @@ td input[type="checkbox"] { accent-color: var(--accent); }
   </div><!-- /content -->
 </div><!-- /main -->
 
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" data-action="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> 打开文件</div>
+  <div class="ctx-item" data-action="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> 打开所在文件夹</div>
+  <div class="ctx-item" data-action="copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 复制路径</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" data-action="delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> 删除</div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 // APP LOGIC
@@ -617,7 +643,9 @@ const $$ = (sel) => document.querySelectorAll(sel);
 let scanResult = null;
 let currentTheme = 'light';
 let largeFilesPage = 0;
+let filteredLargeFiles = null;
 const PAGE_SIZE = 50;
+let ctxTargetPath = null;
 
 // ─── Helpers ───
 function formatSize(bytes) {
@@ -697,17 +725,64 @@ function setTheme(theme) {
 
 $('#btnTheme').addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
 
+// ─── Disk Selector ───
+async function loadDiskSelector() {
+  const disks = await window.api.getDiskInfo();
+  const select = $('#diskSelect');
+  select.innerHTML = '';
+  for (const d of disks) {
+    const label = `${d.mountpoint} (${formatSize(d.free)} 可用)`;
+    const opt = document.createElement('option');
+    opt.value = d.mountpoint;
+    opt.textContent = label;
+    select.appendChild(opt);
+  }
+  select.addEventListener('change', () => {
+    $('#scanPathInput').value = select.value;
+  });
+}
+
 // ─── Scan ───
-$('#btnScan').addEventListener('click', async () => {
-  const config = await window.api.getConfig();
-  const scanPath = config.lastScanPath || require('os').homedir();
-  // Show path input dialog
-  const path = prompt('扫描路径:', scanPath);
-  if (!path) return;
+$('#btnScan').addEventListener('click', () => {
+  const path = $('#scanPathInput').value.trim();
+  if (!path) { alert('请输入扫描路径'); return; }
   startScan(path);
 });
 
+$('#btnBrowse').addEventListener('click', async () => {
+  const result = await window.api.showOpenDialog({ properties: ['openDirectory'] });
+  if (!result.canceled && result.filePaths.length > 0) {
+    $('#scanPathInput').value = result.filePaths[0];
+  }
+});
+
+$('#scanPathInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const path = $('#scanPathInput').value.trim();
+    if (path) startScan(path);
+  }
+});
+
 function startScan(path) {
+  // Re-register one-shot listeners for this scan
+  window.api.onScanResult((result) => {
+    scanResult = result;
+    $('#scanBar').classList.add('hidden');
+    $('#overviewContent').style.display = 'block';
+    $('#emptyState').style.display = 'none';
+    populateOverview(result);
+    populateLargeFiles(result);
+    populateDuplicates(result);
+    populateTempFiles(result);
+    populateHistory();
+    updateSidebar(result);
+  });
+
+  window.api.onScanError((err) => {
+    $('#scanBar').classList.add('hidden');
+    alert('扫描错误: ' + err);
+  });
+
   $('#scanBar').classList.remove('hidden');
   $('#emptyState').style.display = 'none';
   $('#overviewContent').style.display = 'none';
@@ -723,32 +798,17 @@ window.api.onScanProgress((p) => {
   $('#scanElapsed').textContent = p.elapsed.toFixed(1);
 });
 
-window.api.onScanResult((result) => {
-  scanResult = result;
-  $('#scanBar').classList.add('hidden');
-  $('#overviewContent').style.display = 'block';
-  $('#emptyState').style.display = 'none';
-  populateOverview(result);
-  populateLargeFiles(result);
-  populateDuplicates(result);
-  populateTempFiles(result);
-  populateHistory();
-  updateSidebar(result);
-});
-
-window.api.onScanError((err) => {
-  $('#scanBar').classList.add('hidden');
-  alert('扫描错误: ' + err);
-});
-
 // ─── Populate Overview ───
-function populateOverview(r) {
-  // Stat cards
-  const disks = r.topDirs[0] ? [{ total: r.totalUsed * 1.37, used: r.totalUsed }] : [];
-  const total = disks[0]?.total || r.totalUsed * 1.37;
-  const free = total - r.totalUsed;
+async function populateOverview(r) {
+  // Get real disk info
+  const disks = await window.api.getDiskInfo();
+  const scanPath = $('#scanPathInput').value || '/';
+  // Find the disk that matches the scan path
+  let diskInfo = disks.find(d => scanPath.startsWith(d.mountpoint)) || disks[0];
+  const total = diskInfo?.total || r.totalUsed;
+  const free = diskInfo?.free || (total - r.totalUsed);
   const cleanable = r.junkDirs.reduce((s, [, sz]) => s + sz, 0);
-  const pct = ((r.totalUsed / total) * 100).toFixed(1);
+  const pct = total > 0 ? ((r.totalUsed / total) * 100).toFixed(1) : '0';
 
   $('#statCards').innerHTML = `
     <div class="card"><div class="card-header"><span class="card-title">总容量</span><div class="card-icon accent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div></div><div class="card-value">${formatSize(total)}</div><div class="card-sub">分析磁盘</div></div>
@@ -782,7 +842,7 @@ function populateOverview(r) {
     const barPct = ((size / maxDirSize) * 100).toFixed(0);
     const dirName = dirPath.split(/[\\/]/).pop() || dirPath;
     const tag = dirPath.match(/cache|temp|log|backup/i) ? '<span class="tag tag-warning">可清理</span>' : '<span class="tag tag-accent">目录</span>';
-    return `<tr><td>${i+1}</td><td class="file-path" title="${dirPath}">${dirPath}</td><td>${tag}</td><td class="file-size">${formatSize(size)}</td><td><div class="file-bar"><div class="file-bar-fill" style="width:${barPct}%;background:var(--accent)"></div></div></td></tr>`;
+    return `<tr data-path="${dirPath}" oncontextmenu="showCtxMenu(event,'${dirPath.replace(/'/g,"\\'")}')"><td>${i+1}</td><td class="file-path" title="${dirPath}">${dirPath}</td><td>${tag}</td><td class="file-size">${formatSize(size)}</td><td><div class="file-bar"><div class="file-bar-fill" style="width:${barPct}%;background:var(--accent)"></div></div></td></tr>`;
   }).join('');
 }
 
@@ -840,10 +900,10 @@ function populateLargeFiles(r) {
 
 function renderLargeFilesPage() {
   if (!scanResult) return;
-  const files = scanResult.topFiles;
+  const files = filteredLargeFiles || scanResult.topFiles;
   const start = largeFilesPage * PAGE_SIZE;
   const page = files.slice(start, start + PAGE_SIZE);
-  const max = files[0]?.[1] || 1;
+  const max = (scanResult.topFiles[0]?.[1]) || 1;
 
   const tbody = $('#tableLargeFiles tbody');
   tbody.innerHTML = page.map(([filePath, size, mtime]) => {
@@ -851,7 +911,7 @@ function renderLargeFilesPage() {
     const ext = getExt(filePath);
     const barPct = ((size / max) * 100).toFixed(0);
     const date = new Date(mtime * 1000).toLocaleDateString('zh-CN');
-    return `<tr><td class="file-name">${name}</td><td class="file-path" title="${filePath}">${filePath}</td><td>${getExtTag(ext)}</td><td>${date}</td><td class="file-size">${formatSize(size)}</td></tr>`;
+    return `<tr data-path="${filePath}" oncontextmenu="showCtxMenu(event,'${filePath.replace(/'/g,"\\'")}')"><td class="file-name">${name}</td><td class="file-path" title="${filePath}">${filePath}</td><td>${getExtTag(ext)}</td><td>${date}</td><td class="file-size">${formatSize(size)}</td></tr>`;
   }).join('');
 
   $('#pageInfo').textContent = `显示 ${start+1}-${Math.min(start+PAGE_SIZE, files.length)} / 共 ${files.length} 项`;
@@ -861,6 +921,18 @@ function renderLargeFilesPage() {
 
 $('#btnPrevPage').addEventListener('click', () => { largeFilesPage = Math.max(0, largeFilesPage - 1); renderLargeFilesPage(); });
 $('#btnNextPage').addEventListener('click', () => { largeFilesPage++; renderLargeFilesPage(); });
+
+// Search large files
+$('#searchLargeFiles').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  if (!q) {
+    filteredLargeFiles = null;
+  } else {
+    filteredLargeFiles = (scanResult?.topFiles || []).filter(([fp]) => fp.toLowerCase().includes(q));
+  }
+  largeFilesPage = 0;
+  renderLargeFilesPage();
+});
 
 // ─── Populate Duplicates ───
 function populateDuplicates(r) {
@@ -880,7 +952,7 @@ function populateDuplicates(r) {
     const wasted = size * (paths.length - 1);
     const files = paths.map(p => {
       const date = new Date().toLocaleDateString('zh-CN');
-      return `<div class="dup-file"><input type="checkbox" data-path="${p}"><span class="file-path" title="${p}">${p}</span><span class="text-muted">${date}</span><span class="file-size">${formatSize(size)}</span><span class="tag tag-warning">建议删除</span></div>`;
+      return `<div class="dup-file" oncontextmenu="showCtxMenu(event,'${p.replace(/'/g,"\\'")}')"><input type="checkbox" data-path="${p}"><span class="file-path" title="${p}">${p}</span><span class="text-muted">${date}</span><span class="file-size">${formatSize(size)}</span><span class="tag tag-warning">建议删除</span></div>`;
     }).join('');
 
     return `<div class="dup-group"><div class="dup-group-header" onclick="this.querySelector('.chevron').classList.toggle('open');this.nextElementSibling.classList.toggle('collapsed')"><svg class="chevron open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><strong>${name}</strong><div class="dup-group-meta"><span class="tag tag-accent">${paths.length} 个副本</span><span>每份 ${formatSize(size)}</span><span class="text-danger">可节省 ${formatSize(wasted)}</span></div></div><div class="dup-group-body">${files}</div></div>`;
@@ -900,7 +972,7 @@ function populateTempFiles(r) {
 
   container.innerHTML = r.junkDirs.map(([junkPath, size], i) => {
     const name = junkPath.split(/[\\/]/).pop() || junkPath;
-    return `<div class="clean-cat"><div class="clean-cat-header" onclick="this.nextElementSibling.classList.toggle('show')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>${name}</span><span class="file-size" style="margin-left:auto">${formatSize(size)}</span></div><div class="clean-cat-body"><div class="clean-cat-path">${junkPath}</div></div></div>`;
+    return `<div class="clean-cat"><div class="clean-cat-header" onclick="this.nextElementSibling.classList.toggle('show')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>${name}</span><span class="file-size" style="margin-left:auto">${formatSize(size)}</span></div><div class="clean-cat-body"><div class="clean-cat-path" oncontextmenu="showCtxMenu(event,'${junkPath.replace(/'/g,"\\'")}')">${junkPath}</div></div></div>`;
   }).join('');
 }
 
@@ -942,9 +1014,12 @@ async function populateHistory() {
 }
 
 // ─── Sidebar ───
-function updateSidebar(r) {
-  const total = r.totalUsed * 1.37;
-  const pct = ((r.totalUsed / total) * 100).toFixed(0);
+async function updateSidebar(r) {
+  const disks = await window.api.getDiskInfo();
+  const scanPath = $('#scanPathInput').value || '/';
+  const diskInfo = disks.find(d => scanPath.startsWith(d.mountpoint)) || disks[0];
+  const total = diskInfo?.total || r.totalUsed;
+  const pct = total > 0 ? ((r.totalUsed / total) * 100).toFixed(0) : '0';
   $('#footerLabel').textContent = `${pct}% 已使用`;
   $('#footerBarFill').style.width = pct + '%';
   $('#footerUsage').textContent = `${formatSize(r.totalUsed)} / ${formatSize(total)}`;
@@ -961,7 +1036,7 @@ async function loadSettings() {
   $('#settingApiKey').value = config.llmApiKey || '';
   $('#settingModel').value = config.llmModel || '';
   if (config.lastScanPath) {
-    $('#topbarSub').textContent = config.lastScanPath;
+    $('#scanPathInput').value = config.lastScanPath;
   }
 }
 
@@ -975,12 +1050,27 @@ $('#settingApiKey').addEventListener('change', () => window.api.setConfig({ llmA
 $('#settingModel').addEventListener('change', () => window.api.setConfig({ llmModel: $('#settingModel').value }));
 
 // ─── LLM ───
+let llmFullText = '';
+
 $('#btnAIStart').addEventListener('click', () => {
   if (!scanResult) { alert('请先完成扫描'); return; }
+  llmFullText = '';
   $('#aiOutput').innerHTML = '';
   $('#btnAIStart').disabled = true;
   $('#btnAIStop').disabled = false;
   window.api.analyzeLLM(scanResult);
+
+  // Re-register one-shot done/error listeners
+  window.api.onLLMDone(() => {
+    $('#btnAIStart').disabled = false;
+    $('#btnAIStop').disabled = true;
+  });
+
+  window.api.onLLMError((err) => {
+    $('#btnAIStart').disabled = false;
+    $('#btnAIStop').disabled = true;
+    $('#aiOutput').innerHTML += `<br><span class="text-danger">错误: ${err}</span>`;
+  });
 });
 
 $('#btnAIStop').addEventListener('click', () => {
@@ -990,23 +1080,22 @@ $('#btnAIStop').addEventListener('click', () => {
 });
 
 $('#btnAIClear').addEventListener('click', () => {
+  llmFullText = '';
   $('#aiOutput').innerHTML = '<span class="text-muted">点击「开始分析」，AI 将根据扫描结果给出智能清理建议</span>';
 });
 
 $('#btnAICopy').addEventListener('click', () => {
-  const text = $('#aiOutput').textContent;
-  navigator.clipboard.writeText(text);
+  navigator.clipboard.writeText(llmFullText || $('#aiOutput').textContent);
 });
 
 $('#btnAIExport').addEventListener('click', () => {
-  const text = $('#aiOutput').textContent;
-  window.api.exportMD(text);
+  window.api.exportMD(llmFullText || $('#aiOutput').textContent);
 });
 
 window.api.onLLMStream((token) => {
-  const output = $('#aiOutput');
-  // Simple markdown rendering
-  let html = token
+  llmFullText += token;
+  // Render accumulated markdown
+  let html = llmFullText
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
@@ -1014,19 +1103,8 @@ window.api.onLLMStream((token) => {
     .replace(/^# (.+)$/gm, '<h2>$1</h2>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\n/g, '<br>');
-  output.innerHTML += html;
-  output.scrollTop = output.scrollHeight;
-});
-
-window.api.onLLMDone(() => {
-  $('#btnAIStart').disabled = false;
-  $('#btnAIStop').disabled = true;
-});
-
-window.api.onLLMError((err) => {
-  $('#btnAIStart').disabled = false;
-  $('#btnAIStop').disabled = true;
-  $('#aiOutput').innerHTML += `<br><span class="text-danger">错误: ${err}</span>`;
+  $('#aiOutput').innerHTML = html;
+  $('#aiOutput').scrollTop = $('#aiOutput').scrollHeight;
 });
 
 $('#btnTestLLM').addEventListener('click', async () => {
@@ -1044,6 +1122,45 @@ $('#btnTestLLM').addEventListener('click', async () => {
     btn.style.color = 'var(--danger)';
     setTimeout(() => { btn.textContent = '测试连接'; btn.style.color = ''; }, 2000);
   }
+});
+
+// ─── Duplicate cleanup ───
+$('#btnDupRescan').addEventListener('click', () => {
+  const path = $('#scanPathInput').value.trim();
+  if (path) startScan(path);
+});
+
+$('#btnDupClean').addEventListener('click', async () => {
+  const checked = document.querySelectorAll('#dupGroups input[type="checkbox"]:checked');
+  if (checked.length === 0) { alert('请先选择要删除的文件'); return; }
+  if (!confirm(`确定删除 ${checked.length} 个文件？`)) return;
+
+  let deleted = 0;
+  for (const cb of checked) {
+    const filePath = cb.dataset.path;
+    const result = await window.api.deleteFile(filePath, false);
+    if (result.success) deleted++;
+  }
+  alert(`已删除 ${deleted} 个文件`);
+  // Rescan
+  const path = $('#scanPathInput').value.trim();
+  if (path) startScan(path);
+});
+
+// ─── Temp files cleanup ───
+$('#btnTempClean').addEventListener('click', async () => {
+  if (!scanResult || scanResult.junkDirs.length === 0) { alert('没有可清理的临时文件'); return; }
+  const totalSize = formatSize(scanResult.junkDirs.reduce((s, [, sz]) => s + sz, 0));
+  if (!confirm(`确定清理 ${scanResult.junkDirs.length} 个临时文件目录（共 ${totalSize}）？\n将移至回收站。`)) return;
+
+  let cleaned = 0;
+  for (const [junkPath] of scanResult.junkDirs) {
+    const result = await window.api.deleteFile(junkPath, false);
+    if (result.success) cleaned++;
+  }
+  alert(`已清理 ${cleaned} 个目录`);
+  const path = $('#scanPathInput').value.trim();
+  if (path) startScan(path);
 });
 
 // ─── History clear ───
@@ -1065,8 +1182,56 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ─── Context Menu ───
+function showCtxMenu(e, filePath) {
+  e.preventDefault();
+  ctxTargetPath = filePath;
+  const menu = $('#ctxMenu');
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.classList.add('show');
+}
+
+document.addEventListener('click', () => {
+  $('#ctxMenu').classList.remove('show');
+});
+
+document.addEventListener('contextmenu', (e) => {
+  // Close menu on right-click elsewhere
+  if (!e.target.closest('tr[data-path]') && !e.target.closest('.dup-file')) {
+    $('#ctxMenu').classList.remove('show');
+  }
+});
+
+$$('.ctx-item').forEach(item => {
+  item.addEventListener('click', async () => {
+    if (!ctxTargetPath) return;
+    const action = item.dataset.action;
+    if (action === 'open') await window.api.openFile(ctxTargetPath);
+    else if (action === 'reveal') await window.api.revealFile(ctxTargetPath);
+    else if (action === 'copy') await window.api.copyPath(ctxTargetPath);
+    else if (action === 'delete') {
+      if (confirm(`确定删除？\n${ctxTargetPath}`)) {
+        const r = await window.api.deleteFile(ctxTargetPath, false);
+        if (r.success) {
+          const path = $('#scanPathInput').value.trim();
+          if (path) startScan(path);
+        }
+      }
+    }
+  });
+});
+
 // ─── Init ───
 loadSettings();
+loadDiskSelector();
+
+// Set initial scan path
+(async () => {
+  const config = await window.api.getConfig();
+  const homedir = await window.api.getHomedir();
+  $('#scanPathInput').value = config.lastScanPath || homedir;
+})();
 
 // Expose for settings toggles
 window.app = {

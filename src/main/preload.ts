@@ -1,41 +1,62 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { IPC, ScanResult, ScanProgress, DiskInfo, AppConfig, HistoryEntry } from '../shared/types';
 
+// Track listeners for cleanup
+const listenerCleanups: Array<() => void> = [];
+
+function safeOn(channel: string, callback: (...args: unknown[]) => void): () => void {
+  const handler = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(...args);
+  ipcRenderer.on(channel, handler);
+  const cleanup = () => { ipcRenderer.removeListener(channel, handler); };
+  listenerCleanups.push(cleanup);
+  return cleanup;
+}
+
+function safeOnce(channel: string, callback: (...args: unknown[]) => void): void {
+  ipcRenderer.once(channel, (_event, ...args) => callback(...args));
+}
+
 contextBridge.exposeInMainWorld('api', {
+  // App
+  getHomedir: (): Promise<string> => ipcRenderer.invoke('app:homedir'),
+  getPath: (name: string): Promise<string> => ipcRenderer.invoke('app:getPath', name),
+  showOpenDialog: (options: { properties: string[] }): Promise<{ canceled: boolean; filePaths: string[] }> =>
+    ipcRenderer.invoke('app:showOpenDialog', options),
+
   // Disk
   getDiskInfo: (): Promise<DiskInfo[]> => ipcRenderer.invoke(IPC.DISK_INFO),
 
   // Scan
-  startScan: (path: string) => ipcRenderer.send(IPC.SCAN_START, path),
+  startScan: (scanPath: string) => ipcRenderer.send(IPC.SCAN_START, scanPath),
   stopScan: () => ipcRenderer.send(IPC.SCAN_STOP),
   onScanProgress: (callback: (progress: ScanProgress) => void) => {
-    ipcRenderer.on(IPC.SCAN_PROGRESS, (_, data) => callback(data));
+    safeOn(IPC.SCAN_PROGRESS, callback as (...args: unknown[]) => void);
   },
   onScanResult: (callback: (result: ScanResult) => void) => {
-    ipcRenderer.on(IPC.SCAN_RESULT, (_, data) => callback(data));
+    safeOnce(IPC.SCAN_RESULT, callback as (...args: unknown[]) => void);
   },
   onScanError: (callback: (error: string) => void) => {
-    ipcRenderer.on(IPC.SCAN_ERROR, (_, data) => callback(data));
+    safeOnce(IPC.SCAN_ERROR, callback as (...args: unknown[]) => void);
   },
 
   // File operations
-  openFile: (path: string) => ipcRenderer.invoke(IPC.FILE_OPEN, path),
-  openDir: (path: string) => ipcRenderer.invoke(IPC.FILE_OPEN_DIR, path),
-  revealFile: (path: string) => ipcRenderer.invoke(IPC.FILE_REVEAL, path),
-  deleteFile: (path: string, permanent: boolean) => ipcRenderer.invoke(IPC.FILE_DELETE, path, permanent),
-  copyPath: (path: string) => ipcRenderer.invoke(IPC.FILE_COPY_PATH, path),
+  openFile: (filePath: string) => ipcRenderer.invoke(IPC.FILE_OPEN, filePath),
+  openDir: (filePath: string) => ipcRenderer.invoke(IPC.FILE_OPEN_DIR, filePath),
+  revealFile: (filePath: string) => ipcRenderer.invoke(IPC.FILE_REVEAL, filePath),
+  deleteFile: (filePath: string, permanent: boolean) => ipcRenderer.invoke(IPC.FILE_DELETE, filePath, permanent),
+  copyPath: (filePath: string) => ipcRenderer.invoke(IPC.FILE_COPY_PATH, filePath),
 
   // LLM
   analyzeLLM: (scanResult: ScanResult) => ipcRenderer.send(IPC.LLM_ANALYZE, scanResult),
   stopLLM: () => ipcRenderer.send(IPC.LLM_STOP),
   onLLMStream: (callback: (token: string) => void) => {
-    ipcRenderer.on(IPC.LLM_STREAM, (_, data) => callback(data));
+    safeOn(IPC.LLM_STREAM, callback as (...args: unknown[]) => void);
   },
   onLLMDone: (callback: () => void) => {
-    ipcRenderer.on(IPC.LLM_DONE, () => callback());
+    safeOnce(IPC.LLM_DONE, callback as (...args: unknown[]) => void);
   },
   onLLMError: (callback: (error: string) => void) => {
-    ipcRenderer.on(IPC.LLM_ERROR, (_, data) => callback(data));
+    safeOnce(IPC.LLM_ERROR, callback as (...args: unknown[]) => void);
   },
   testLLM: (): Promise<{ ok: boolean; models?: string[]; error?: string }> =>
     ipcRenderer.invoke(IPC.LLM_TEST),

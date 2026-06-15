@@ -65,6 +65,14 @@ function createWindow(): void {
 
 // --- IPC Handlers ---
 
+// App helpers
+ipcMain.handle('app:homedir', () => os.homedir());
+ipcMain.handle('app:getPath', (_event, name: string) => app.getPath(name as any));
+ipcMain.handle('app:showOpenDialog', async (_event, options: Electron.OpenDialogOptions) => {
+  const result = await dialog.showOpenDialog(mainWindow!, options);
+  return result;
+});
+
 // Disk info
 ipcMain.handle(IPC.DISK_INFO, async (): Promise<DiskInfo[]> => {
   const disks: DiskInfo[] = [];
@@ -149,7 +157,7 @@ async function getLinuxMounts(): Promise<string[]> {
         }
       }
     }
-    return mounts.length > 0 ? ['/'] : mounts;
+    return mounts.length > 0 ? mounts : ['/'];
   } catch {
     return ['/'];
   }
