@@ -1,0 +1,13 @@
+appId: com.treesize.diskanalyzer
+productName: 磁盘分析器
+directories:
+  output: release
+files:
+  - dist/**/*
+  - package.json
+asar: true
+win:
+  target:
+    - target: zip
+      arch:
+        - x64

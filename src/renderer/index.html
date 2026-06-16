@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>磁盘空间分析器</title>
+<style>
+/* ═══════════ THEME TOKENS ═══════════ */
+:root {
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', ui-monospace, Menlo, monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --transition: 0.2s ease;
+}
+[data-theme="light"] {
+  --bg: oklch(97.5% 0.004 250);
+  --bg-raised: oklch(100% 0 0);
+  --surface: oklch(100% 0 0);
+  --surface-alt: oklch(96% 0.005 250);
+  --fg: oklch(18% 0.012 250);
+  --fg-secondary: oklch(40% 0.012 250);
+  --muted: oklch(55% 0.012 250);
+  --border: oklch(90% 0.006 250);
+  --border-strong: oklch(82% 0.008 250);
+  --accent: oklch(55% 0.19 255);
+  --accent-soft: oklch(92% 0.04 255);
+  --success: oklch(55% 0.16 155);
+  --success-soft: oklch(93% 0.04 155);
+  --warning: oklch(62% 0.18 75);
+  --warning-soft: oklch(93% 0.05 75);
+  --danger: oklch(55% 0.20 25);
+  --danger-soft: oklch(93% 0.04 25);
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.04);
+  --shadow-md: 0 2px 8px oklch(0% 0 0 / 0.06);
+  --sidebar-bg: oklch(15% 0.012 250);
+  --sidebar-fg: oklch(88% 0.006 250);
+  --sidebar-muted: oklch(55% 0.012 250);
+  --sidebar-active: oklch(55% 0.19 255);
+  --sidebar-hover: oklch(22% 0.012 250);
+  --chart-1: oklch(55% 0.19 255);
+  --chart-2: oklch(58% 0.16 155);
+  --chart-3: oklch(62% 0.18 75);
+  --chart-4: oklch(55% 0.20 25);
+  --chart-5: oklch(60% 0.14 300);
+  --chart-6: oklch(48% 0.12 200);
+  --chart-7: oklch(72% 0.10 110);
+}
+[data-theme="dark"] {
+  --bg: oklch(14% 0.012 250);
+  --bg-raised: oklch(18% 0.012 250);
+  --surface: oklch(20% 0.012 250);
+  --surface-alt: oklch(16% 0.012 250);
+  --fg: oklch(90% 0.006 250);
+  --fg-secondary: oklch(65% 0.012 250);
+  --muted: oklch(48% 0.012 250);
+  --border: oklch(28% 0.012 250);
+  --border-strong: oklch(35% 0.012 250);
+  --accent: oklch(65% 0.18 255);
+  --accent-soft: oklch(22% 0.05 255);
+  --success: oklch(65% 0.15 155);
+  --success-soft: oklch(22% 0.04 155);
+  --warning: oklch(72% 0.16 75);
+  --warning-soft: oklch(24% 0.05 75);
+  --danger: oklch(62% 0.18 25);
+  --danger-soft: oklch(22% 0.05 25);
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.2);
+  --shadow-md: 0 2px 8px oklch(0% 0 0 / 0.3);
+  --sidebar-bg: oklch(12% 0.012 250);
+  --sidebar-fg: oklch(85% 0.006 250);
+  --sidebar-muted: oklch(50% 0.012 250);
+  --sidebar-active: oklch(65% 0.18 255);
+  --sidebar-hover: oklch(16% 0.012 250);
+  --chart-1: oklch(65% 0.18 255);
+  --chart-2: oklch(65% 0.15 155);
+  --chart-3: oklch(72% 0.16 75);
+  --chart-4: oklch(62% 0.18 25);
+  --chart-5: oklch(68% 0.14 300);
+  --chart-6: oklch(58% 0.12 200);
+  --chart-7: oklch(78% 0.10 110);
+}
+
+/* ═══════════ RESET ═══════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.5;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, select { font-family: inherit; color: inherit; }
+table { border-collapse: collapse; width: 100%; }
+
+/* ═══════════ SIDEBAR ═══════════ */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-fg);
+  display: flex;
+  flex-direction: column;
+  transition: background var(--transition);
+  user-select: none;
+}
+.sidebar-logo {
+  padding: 20px 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid oklch(25% 0.01 250);
+}
+.sidebar-logo svg { flex-shrink: 0; }
+.sidebar-logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.sidebar-logo-ver { font-size: 10px; color: var(--sidebar-muted); font-family: var(--font-mono); }
+.sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+.sidebar-section {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--sidebar-muted); padding: 14px 10px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  color: var(--sidebar-fg); transition: background var(--transition), color var(--transition);
+  cursor: pointer; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--sidebar-hover); }
+.nav-item.active { background: oklch(25% 0.012 250); color: var(--sidebar-active); }
+.nav-item.active svg { color: var(--sidebar-active); }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+.nav-badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 1px 6px;
+  border-radius: 99px; min-width: 18px; text-align: center;
+}
+.sidebar-footer {
+  padding: 12px 14px; border-top: 1px solid oklch(25% 0.01 250);
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-footer .disk-mini {
+  flex: 1; height: 4px; background: oklch(25% 0.01 250);
+  border-radius: 2px; overflow: hidden;
+}
+.sidebar-footer .disk-mini-fill {
+  height: 100%; background: var(--warning); border-radius: 2px; width: 0%;
+  transition: width 0.5s ease;
+}
+.sidebar-footer-label { font-size: 11px; color: var(--sidebar-muted); font-family: var(--font-mono); }
+
+/* ═══════════ MAIN AREA ═══════════ */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px; border-bottom: 1px solid var(--border);
+  background: var(--bg-raised); gap: 12px; flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-title { font-size: 16px; font-weight: 600; font-family: var(--font-display); letter-spacing: -0.02em; }
+.topbar-sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ═══════════ BUTTONS ═══════════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 500; transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-ghost { background: transparent; color: var(--fg-secondary); }
+.btn-ghost:hover { background: var(--surface-alt); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { filter: brightness(1.1); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+/* ═══════════ SCAN BAR ═══════════ */
+.scan-bar {
+  display: none; align-items: center; gap: 12px;
+  padding: 10px 24px; background: var(--accent-soft);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.scan-bar.active { display: flex; }
+.spinner {
+  width: 16px; height: 16px; border: 2px solid var(--border-strong);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.scan-bar-text { font-size: 12px; color: var(--fg-secondary); flex: 1; }
+.scan-bar-text strong { color: var(--fg); }
+
+/* ═══════════ CONTENT ═══════════ */
+.content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ═══════════ CARDS ═══════════ */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 18px 20px;
+  transition: background var(--transition), border-color var(--transition);
+}
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.card-title {
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.card-title svg { width: 14px; height: 14px; }
+.card-value { font-size: 28px; font-weight: 700; font-family: var(--font-display); letter-spacing: -0.03em; }
+.card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.card-icon {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+}
+.card-icon svg { width: 18px; height: 18px; }
+.card-icon.accent { background: var(--accent-soft); color: var(--accent); }
+.card-icon.success { background: var(--success-soft); color: var(--success); }
+.card-icon.warning { background: var(--warning-soft); color: var(--warning); }
+.card-icon.danger { background: var(--danger-soft); color: var(--danger); }
+
+/* ═══════════ GRIDS ═══════════ */
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+
+/* ═══════════ TABLES ═══════════ */
+.data-table { width: 100%; font-size: 12px; }
+.data-table th {
+  text-align: left; padding: 8px 12px; font-weight: 600; color: var(--muted);
+  border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.04em; position: sticky; top: 0; background: var(--surface);
+  cursor: pointer; user-select: none;
+}
+.data-table th:hover { color: var(--fg); }
+.data-table td {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tr:hover td { background: var(--surface-alt); }
+.data-table .size-col { text-align: right; font-family: var(--font-mono); font-size: 12px; white-space: nowrap; }
+.data-table .path-col { max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.data-table .ext-col {
+  display: inline-block; padding: 1px 6px; border-radius: 4px;
+  font-size: 10px; font-weight: 600; font-family: var(--font-mono);
+}
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-accent { background: var(--accent-soft); color: var(--accent); }
+.tag-success { background: var(--success-soft); color: var(--success); }
+.tag-warning { background: var(--warning-soft); color: var(--warning); }
+.tag-danger { background: var(--danger-soft); color: var(--danger); }
+
+/* ═══════════ PROGRESS BAR ═══════════ */
+.progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+.progress-fill.accent { background: var(--accent); }
+.progress-fill.warning { background: var(--warning); }
+.progress-fill.success { background: var(--success); }
+
+/* ═══════════ DONUT CHART ═══════════ */
+.donut-wrap { display: flex; align-items: center; gap: 24px; }
+.donut-legend { flex: 1; }
+.donut-legend-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; }
+.donut-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.donut-legend-label { flex: 1; color: var(--fg-secondary); }
+.donut-legend-value { font-family: var(--font-mono); font-weight: 600; }
+
+/* ═══════════ HEALTH BAR ═══════════ */
+.health-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.health-label { font-size: 12px; color: var(--fg-secondary); width: 80px; flex-shrink: 0; }
+.health-bar-wrap { flex: 1; }
+.health-value { font-size: 12px; font-family: var(--font-mono); font-weight: 600; width: 60px; text-align: right; }
+
+/* ═══════════ SETTINGS ═══════════ */
+.settings-group { margin-bottom: 24px; }
+.settings-group-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--fg); }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); margin-bottom: 8px;
+}
+.settings-row-label { font-size: 13px; font-weight: 500; }
+.settings-row-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.settings-row input[type="text"], .settings-row input[type="number"] {
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface-alt); font-size: 12px; width: 200px;
+}
+.toggle {
+  width: 40px; height: 22px; background: var(--border-strong); border-radius: 11px;
+  position: relative; cursor: pointer; transition: background var(--transition);
+}
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; background: #fff; border-radius: 50%;
+  transition: transform var(--transition);
+}
+.toggle.on { background: var(--accent); }
+.toggle.on::after { transform: translateX(18px); }
+
+/* ═══════════ SCAN INPUT BAR ═══════════ */
+.scan-input-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 24px; border-bottom: 1px solid var(--border);
+  background: var(--bg-raised); flex-shrink: 0;
+}
+.scan-input-bar input {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface-alt);
+  font-size: 13px;
+}
+.scan-input-bar input:focus { outline: none; border-color: var(--accent); }
+
+/* ═══════════ EMPTY STATE ═══════════ */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px 20px; color: var(--muted);
+}
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.4; }
+.empty-state-text { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.empty-state-sub { font-size: 12px; }
+
+/* ═══════════ SCROLLBAR ═══════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="7" fill="var(--accent)"/>
+      <path d="M8 14.5L12.5 19L20 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="sidebar-logo-text">磁盘分析器</div>
+      <div class="sidebar-logo-ver">v4.0.0</div>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-section">分析</div>
+    <button class="nav-item active" data-tab="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2v10l7 7"/></svg>
+      <span>概览</span>
+    </button>
+    <button class="nav-item" data-tab="large-files">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>大文件</span>
+      <span class="nav-badge" id="badgeLargeFiles" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-tab="temp-files">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      <span>临时文件</span>
+    </button>
+    <div class="sidebar-section">工具</div>
+    <button class="nav-item" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>设置</span>
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <span class="sidebar-footer-label" id="diskPercent">--%</span>
+    <div class="disk-mini"><div class="disk-mini-fill" id="diskMiniFill"></div></div>
+    <span class="sidebar-footer-label" id="diskUsedTotal">--/--</span>
+  </div>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main">
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="topbarTitle">概览</span>
+      <span class="topbar-sub" id="topbarSub">请选择路径开始扫描</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="themeToggle">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span id="themeLabel">深色模式</span>
+      </button>
+      <button class="btn btn-primary" id="btnRescan">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        重新扫描
+      </button>
+    </div>
+  </header>
+
+  <!-- Scan input bar -->
+  <div class="scan-input-bar">
+    <input type="text" id="scanPath" placeholder="输入扫描路径，如 C:\Users 或 /home" />
+    <button class="btn btn-primary" id="btnScan">扫描</button>
+    <button class="btn btn-ghost" id="btnBrowse">浏览</button>
+  </div>
+
+  <!-- Scan progress bar -->
+  <div class="scan-bar" id="scanBar">
+    <div class="spinner"></div>
+    <span class="scan-bar-text">正在扫描 <strong id="scanCurrentPath">...</strong></span>
+    <span class="scan-bar-text" id="scanStats"></span>
+    <button class="btn btn-ghost btn-sm" id="btnStopScan">停止</button>
+  </div>
+
+  <!-- Content area -->
+  <div class="content">
+
+    <!-- ═══════ TAB: OVERVIEW ═══════ -->
+    <div class="tab-panel active" id="panel-overview">
+      <div id="overviewContent">
+        <div class="empty-state" id="overviewEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2v10l7 7"/></svg>
+          <div class="empty-state-text">输入路径并点击扫描</div>
+          <div class="empty-state-sub">分析磁盘空间使用情况</div>
+        </div>
+        <div id="overviewResults" style="display:none">
+          <!-- Stat cards -->
+          <div class="grid-4" id="statCards"></div>
+          <!-- Donut + Health -->
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">文件类型分布</div></div>
+              <div class="donut-wrap">
+                <canvas id="donutCanvas" width="180" height="180"></canvas>
+                <div class="donut-legend" id="donutLegend"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">健康指标</div></div>
+              <div id="healthBars"></div>
+            </div>
+          </div>
+          <!-- Top dirs table -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">占用最大的目录</div></div>
+            <div style="max-height:400px; overflow-y:auto;">
+              <table class="data-table" id="tableTopDirs">
+                <thead><tr><th style="width:50px">#</th><th>路径</th><th style="width:120px" class="size-col">大小</th><th style="width:100px" class="size-col">占比</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: LARGE FILES ═══════ -->
+    <div class="tab-panel" id="panel-large-files">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">大文件列表</div>
+          <span class="tag tag-accent" id="largeFilesCount">0 个文件</span>
+        </div>
+        <div style="max-height:600px; overflow-y:auto;">
+          <table class="data-table" id="tableLargeFiles">
+            <thead><tr><th style="width:40px">#</th><th>文件名</th><th>路径</th><th style="width:80px">类型</th><th style="width:120px" class="size-col">大小</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: TEMP FILES ═══════ -->
+    <div class="tab-panel" id="panel-temp-files">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">可清理目录</div>
+          <span class="tag tag-success" id="junkTotalSize">0 B</span>
+        </div>
+        <div style="max-height:600px; overflow-y:auto;">
+          <table class="data-table" id="tableJunk">
+            <thead><tr><th style="width:40px">#</th><th>路径</th><th style="width:120px" class="size-col">大小</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: SETTINGS ═══════ -->
+    <div class="tab-panel" id="panel-settings">
+      <div class="settings-group">
+        <div class="settings-group-title">通用设置</div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">深色模式</div><div class="settings-row-desc">切换界面主题</div></div>
+          <div class="toggle" id="settingsThemeToggle"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">Top N 数量</div><div class="settings-row-desc">显示前 N 个大文件/大目录</div></div>
+          <input type="number" id="settingsTopN" value="15" min="5" max="100" style="width:80px" />
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">扫描设置</div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">排除目录</div><div class="settings-row-desc">每行一个路径，扫描时跳过</div></div>
+          <textarea id="settingsExcludeDirs" rows="3" style="width:300px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-alt);font-size:12px;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">关于</div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">磁盘空间分析器</div><div class="settings-row-desc">v4.0.0 · 跨平台磁盘分析工具</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════ HELPERS ═══════════
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+function formatSize(bytes) {
+  if (typeof bytes !== 'number' || !isFinite(bytes) || bytes < 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let b = bytes;
+  for (const unit of units) {
+    if (b < 1024) return b.toFixed(2) + ' ' + unit;
+    b /= 1024;
+  }
+  return b.toFixed(2) + ' PB';
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ═══════════ THEME ═══════════
+let currentTheme = 'light';
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  $('#themeLabel').textContent = theme === 'light' ? '深色模式' : '浅色模式';
+  const toggle = $('#settingsThemeToggle');
+  if (toggle) toggle.classList.toggle('on', theme === 'dark');
+  window.api?.setTheme(theme);
+}
+
+$('#themeToggle').addEventListener('click', () => {
+  applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+});
+
+$('#settingsThemeToggle')?.addEventListener('click', () => {
+  applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+});
+
+// ═══════════ NAVIGATION ═══════════
+const tabTitles = {
+  'overview': '概览',
+  'large-files': '大文件',
+  'temp-files': '临时文件',
+  'settings': '设置',
+};
+
+function showPanel(tabName) {
+  $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tabName));
+  $$('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabName));
+  $('#topbarTitle').textContent = tabTitles[tabName] || tabName;
+}
+
+$$('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => showPanel(btn.dataset.tab));
+});
+
+// ═══════════ SCAN ═══════════
+let scanResult = null;
+
+function startScan(path) {
+  if (!path) return;
+  window.api.stopScan();
+  scanResult = null;
+  $('#scanBar').classList.add('active');
+  $('#scanCurrentPath').textContent = path;
+  $('#scanStats').textContent = '准备扫描...';
+  $('#overviewEmpty').style.display = 'none';
+  $('#overviewResults').style.display = 'none';
+  window.api.startScan(path);
+}
+
+$('#btnScan').addEventListener('click', () => startScan($('#scanPath').value.trim()));
+$('#btnRescan').addEventListener('click', () => {
+  const path = $('#scanPath').value.trim();
+  if (path) startScan(path);
+});
+$('#btnStopScan').addEventListener('click', () => {
+  window.api.stopScan();
+  $('#scanBar').classList.remove('active');
+});
+$('#scanPath').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') startScan($('#scanPath').value.trim());
+});
+
+// ═══════════ SCAN PROGRESS ═══════════
+window.api?.onScanProgress((data) => {
+  const shortPath = data.currentPath.length > 50
+    ? data.currentPath.slice(0, 22) + '...' + data.currentPath.slice(-25)
+    : data.currentPath;
+  $('#scanCurrentPath').textContent = shortPath;
+  $('#scanStats').textContent = `${data.scannedItems} 个文件 · ${formatSize(data.scannedSize)} · ${data.elapsed.toFixed(1)}s`;
+});
+
+// ═══════════ SCAN RESULT ═══════════
+window.api?.onScanResult((result) => {
+  scanResult = result;
+  $('#scanBar').classList.remove('active');
+  $('#overviewResults').style.display = 'block';
+  $('#overviewEmpty').style.display = 'none';
+
+  // Update topbar sub
+  $('#topbarSub').textContent = `${result.scannedItems} 个文件 · ${formatSize(result.totalUsed)} · ${result.scanTime.toFixed(2)}s`;
+
+  // Update badges
+  const lfBadge = $('#badgeLargeFiles');
+  if (result.topFiles.length > 0) {
+    lfBadge.textContent = result.topFiles.length;
+    lfBadge.style.display = '';
+  }
+
+  populateOverview(result);
+  populateLargeFiles(result);
+  populateTempFiles(result);
+});
+
+window.api?.onScanError((msg) => {
+  $('#scanBar').classList.remove('active');
+  alert('扫描错误: ' + msg);
+});
+
+// ═══════════ POPULATE OVERVIEW ═══════════
+function populateOverview(r) {
+  // Stat cards
+  const cards = [
+    { label: '总已用', value: formatSize(r.totalUsed), icon: 'accent' },
+    { label: '扫描文件', value: r.scannedItems.toLocaleString(), icon: 'success' },
+    { label: '扫描耗时', value: r.scanTime.toFixed(2) + 's', icon: 'warning' },
+    { label: '大文件数', value: r.topFiles.length.toString(), icon: 'danger' },
+  ];
+  $('#statCards').innerHTML = cards.map(c => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${c.label}</div>
+        <div class="card-icon ${c.icon}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      </div>
+      <div class="card-value">${c.value}</div>
+    </div>
+  `).join('');
+
+  // Donut chart
+  drawDonut(r.extStats);
+
+  // Health bars
+  drawHealthBars(r);
+
+  // Top dirs table
+  const tbody = $('#tableTopDirs').querySelector('tbody');
+  tbody.innerHTML = r.topDirs.map(([dir, size], i) => {
+    const pct = r.totalUsed > 0 ? ((size / r.totalUsed) * 100).toFixed(1) : '0';
+    return `<tr>
+      <td>${i + 1}</td>
+      <td class="path-col" title="${escapeHtml(dir)}">${escapeHtml(dir)}</td>
+      <td class="size-col">${formatSize(size)}</td>
+      <td class="size-col">
+        <div class="progress-bar" style="width:80px;display:inline-block;vertical-align:middle;">
+          <div class="progress-fill accent" style="width:${pct}%"></div>
+        </div>
+        <span style="margin-left:6px">${pct}%</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════ DONUT CHART ═══════════
+const CHART_COLORS = [
+  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)',
+  'var(--chart-5)', 'var(--chart-6)', 'var(--chart-7)',
+];
+
+function drawDonut(extStats) {
+  const canvas = $('#donutCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2, r = 70, lineWidth = 24;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const top = extStats.slice(0, 7);
+  const total = top.reduce((s, [, v]) => s + v, 0);
+  if (total === 0) return;
+
+  let startAngle = -Math.PI / 2;
+  top.forEach(([ext, size], i) => {
+    const angle = (size / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, startAngle, startAngle + angle);
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue(
+      '--chart-' + ((i % 7) + 1)
+    ).trim() || '#3370FF';
+    ctx.stroke();
+    startAngle += angle;
+  });
+
+  // Center text
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim();
+  ctx.font = 'bold 18px ' + getComputedStyle(document.documentElement).getPropertyValue('--font-display');
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(formatSize(total), cx, cy - 8);
+  ctx.font = '11px ' + getComputedStyle(document.documentElement).getPropertyValue('--font-body');
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
+  ctx.fillText('文件类型', cx, cy + 12);
+
+  // Legend
+  $('#donutLegend').innerHTML = top.map(([ext, size], i) => {
+    const pct = ((size / total) * 100).toFixed(1);
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--chart-' + ((i % 7) + 1)).trim();
+    return `<div class="donut-legend-item">
+      <div class="donut-legend-dot" style="background:${color}"></div>
+      <span class="donut-legend-label">${escapeHtml(ext || '(无后缀)')}</span>
+      <span class="donut-legend-value">${formatSize(size)}</span>
+      <span style="color:var(--muted);font-size:11px;width:45px;text-align:right">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════ HEALTH BARS ═══════════
+function drawHealthBars(r) {
+  const junkSize = r.junkDirs.reduce((s, [, v]) => s + v, 0);
+  const cleanPct = r.totalUsed > 0 ? ((junkSize / r.totalUsed) * 100).toFixed(1) : '0';
+
+  const items = [
+    { label: '可清理', value: formatSize(junkSize), pct: cleanPct, color: 'success' },
+    { label: '扫描文件', value: r.scannedItems.toLocaleString(), pct: '100', color: 'accent' },
+    { label: '扫描耗时', value: r.scanTime.toFixed(2) + 's', pct: Math.min(100, r.scanTime * 2).toFixed(0), color: 'warning' },
+  ];
+
+  $('#healthBars').innerHTML = items.map(item => `
+    <div class="health-row">
+      <span class="health-label">${item.label}</span>
+      <div class="health-bar-wrap">
+        <div class="progress-bar">
+          <div class="progress-fill ${item.color}" style="width:${item.pct}%"></div>
+        </div>
+      </div>
+      <span class="health-value">${item.value}</span>
+    </div>
+  `).join('');
+}
+
+// ═══════════ POPULATE LARGE FILES ═══════════
+function populateLargeFiles(r) {
+  $('#largeFilesCount').textContent = r.topFiles.length + ' 个文件';
+  const tbody = $('#tableLargeFiles').querySelector('tbody');
+  tbody.innerHTML = r.topFiles.map(([file, size, mtime], i) => {
+    const name = file.split(/[/\\]/).pop();
+    const ext = name.includes('.') ? name.split('.').pop().toUpperCase() : '-';
+    const date = mtime > 0 ? new Date(mtime * 1000).toLocaleDateString('zh-CN') : '-';
+    return `<tr>
+      <td>${i + 1}</td>
+      <td title="${escapeHtml(name)}">${escapeHtml(name)}</td>
+      <td class="path-col" title="${escapeHtml(file)}">${escapeHtml(file)}</td>
+      <td><span class="ext-col tag-accent">${escapeHtml(ext)}</span></td>
+      <td class="size-col">${formatSize(size)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════ POPULATE TEMP FILES ═══════════
+function populateTempFiles(r) {
+  const junkTotal = r.junkDirs.reduce((s, [, v]) => s + v, 0);
+  $('#junkTotalSize').textContent = formatSize(junkTotal);
+  const tbody = $('#tableJunk').querySelector('tbody');
+  tbody.innerHTML = r.junkDirs.map(([dir, size], i) => {
+    return `<tr>
+      <td>${i + 1}</td>
+      <td class="path-col" title="${escapeHtml(dir)}">${escapeHtml(dir)}</td>
+      <td class="size-col">${formatSize(size)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════ INIT ═══════════
+(async function init() {
+  try {
+    const config = await window.api.getConfig();
+    if (config) {
+      if (config.theme) applyTheme(config.theme);
+      if (config.lastScanPath) $('#scanPath').value = config.lastScanPath;
+      if (config.topN) $('#settingsTopN').value = config.topN;
+      if (config.excludeDirs) $('#settingsExcludeDirs').value = config.excludeDirs.join('\n');
+    }
+  } catch (e) {
+    console.error('Init failed:', e);
+  }
+
+  // Disk info
+  try {
+    const disks = await window.api.getDiskInfo();
+    if (disks && disks.length > 0) {
+      const d = disks[0];
+      const pct = d.percent;
+      $('#diskPercent').textContent = pct + '%';
+      $('#diskMiniFill').style.width = pct + '%';
+      $('#diskUsedTotal').textContent = formatSize(d.used) + '/' + formatSize(d.total);
+      $('#topbarSub').textContent = `${d.mountpoint} · ${d.device} · ${d.fstype}`;
+    }
+  } catch (e) {
+    console.error('Disk info failed:', e);
+  }
+})();
+
+// Settings save
+$('#settingsTopN').addEventListener('change', () => {
+  window.api.setConfig({ topN: parseInt($('#settingsTopN').value) || 15 });
+});
+$('#settingsExcludeDirs').addEventListener('change', () => {
+  const dirs = $('#settingsExcludeDirs').value.split('\n').map(s => s.trim()).filter(Boolean);
+  window.api.setConfig({ excludeDirs: dirs });
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    window.api.stopScan();
+    $('#scanBar').classList.remove('active');
+  }
+  if (e.key === 'F5') {
+    e.preventDefault();
+    startScan($('#scanPath').value.trim());
+  }
+});
+</script>
+</body>
+</html>
