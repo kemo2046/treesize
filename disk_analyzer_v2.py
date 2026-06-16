@@ -102,76 +102,118 @@ AGE_THRESHOLDS: List[Tuple[int, str]] = [
 
 # ========== 配色方案 ==========
 class LightPalette:
-    # ── Header (飞书风格：白色清爽头部) ──
-    HEADER_BG: str = "#FFFFFF"
-    HEADER_ACCENT: str = "#F5F7FA"
-    HEADER_TEXT: str = "#1F2D3D"
-    HEADER_SUBTITLE: str = "#8F9BB3"
-    # ── Base (飞书风格：浅灰白背景) ──
-    BG: str = "#F5F7FA"
+    # ── Header (渐变靛蓝头部) ──
+    HEADER_BG: str = "#4F46E5"
+    HEADER_ACCENT: str = "#6366F1"
+    HEADER_TEXT: str = "#FFFFFF"
+    HEADER_SUBTITLE: str = "#C7D2FE"
+    # ── Base (现代浅灰白背景) ──
+    BG: str = "#F8F9FB"
     FRAME_BG: str = "#FFFFFF"
-    TEXT: str = "#1F2D3D"
-    TEXT_MUTED: str = "#8F9BB3"
-    PRIMARY: str = "#3370FF"
-    PRIMARY_LIGHT: str = "#EBF0FF"
-    BORDER: str = "#E8ECF0"
+    SURFACE: str = "#FFFFFF"
+    SURFACE_ALT: str = "#F3F4F6"
+    TEXT: str = "#1A1F2E"
+    TEXT_MUTED: str = "#6B7280"
+    FG_SECONDARY: str = "#6B7280"
+    PRIMARY: str = "#4F46E5"
+    PRIMARY_LIGHT: str = "#EEF2FF"
+    BORDER: str = "#E5E7EB"
+    BORDER_STRONG: str = "#D1D5DB"
     STRIPE_ODD: str = "#FFFFFF"
-    STRIPE_EVEN: str = "#F7F8FA"
-    HIGHLIGHT: str = "#E1EAFF"
-    DANGER: str = "#F54A45"
-    SUCCESS: str = "#34C759"
-    WARNING: str = "#FF9500"
-    # ── Buttons (飞书风格：扁平按钮) ──
-    BUTTON_BG: str = "#F0F1F5"
-    BUTTON_ACTIVE: str = "#E4E6EB"
-    BUTTON_DISABLED: str = "#F5F7FA"
-    ACCENT_HOVER: str = "#2860E1"
-    ACCENT_DISABLED: str = "#A3BFFA"
-    DANGER_HOVER: str = "#D93632"
+    STRIPE_EVEN: str = "#F9FAFB"
+    HIGHLIGHT: str = "#E0E7FF"
+    DANGER: str = "#EF4444"
+    SUCCESS: str = "#10B981"
+    WARNING: str = "#F59E0B"
+    # ── Buttons ──
+    BUTTON_BG: str = "#F3F4F6"
+    BUTTON_ACTIVE: str = "#E5E7EB"
+    BUTTON_DISABLED: str = "#F9FAFB"
+    ACCENT_HOVER: str = "#4338CA"
+    ACCENT_DISABLED: str = "#A5B4FC"
+    ACCENT_SOFT: str = "#EEF2FF"
+    DANGER_HOVER: str = "#DC2626"
+    SUCCESS_SOFT: str = "#ECFDF5"
+    WARNING_SOFT: str = "#FFFBEB"
+    DANGER_SOFT: str = "#FEF2F2"
     # ── Tree ──
-    TREE_HEADING_BG: str = "#FAFBFC"
-    TREE_HEADING_ACTIVE: str = "#E8ECF0"
-    TROUGH: str = "#E8ECF0"
-    NOTEBOOK_TAB_BG: str = "#F5F7FA"
-    # ── Metric cards (飞书风格) ──
-    METRIC_TOTAL: str = "#3370FF"
-    METRIC_USED: str = "#FF9500"
-    METRIC_FREE: str = "#34C759"
+    TREE_HEADING_BG: str = "#F9FAFB"
+    TREE_HEADING_ACTIVE: str = "#E5E7EB"
+    TROUGH: str = "#E5E7EB"
+    NOTEBOOK_TAB_BG: str = "#F3F4F6"
+    # ── Sidebar (深色侧栏，两主题一致) ──
+    SIDEBAR_BG: str = "#111827"
+    SIDEBAR_FG: str = "#E5E7EB"
+    SIDEBAR_MUTED: str = "#6B7280"
+    SIDEBAR_ACTIVE: str = "#818CF8"
+    SIDEBAR_HOVER: str = "#1F2937"
+    # ── Metric cards ──
+    METRIC_TOTAL: str = "#4F46E5"
+    METRIC_USED: str = "#F59E0B"
+    METRIC_FREE: str = "#10B981"
     METRIC_SCAN: str = "#8B5CF6"
+    # ── Chart colors ──
+    CHART_1: str = "#4F46E5"
+    CHART_2: str = "#0D9488"
+    CHART_3: str = "#D97706"
+    CHART_4: str = "#DC2626"
+    CHART_5: str = "#7E22CE"
+    CHART_6: str = "#16679A"
+    CHART_7: str = "#84CC16"
 
 
 class DarkPalette:
-    HEADER_BG: str = "#020617"
-    HEADER_ACCENT: str = "#172554"
-    HEADER_TEXT: str = "#F1F5F9"
-    HEADER_SUBTITLE: str = "#CBD5E1"
-    BG: str = "#0F172A"
-    FRAME_BG: str = "#1E293B"
-    TEXT: str = "#F8FAFC"
-    TEXT_MUTED: str = "#F1F5F9"
-    PRIMARY: str = "#60A5FA"
-    PRIMARY_LIGHT: str = "#1E3A5F"
-    BORDER: str = "#334155"
-    STRIPE_ODD: str = "#1E293B"
-    STRIPE_EVEN: str = "#172033"  # P0: 暗色条纹对比度加大
-    HIGHLIGHT: str = "#1E3A5F"
-    DANGER: str = "#EF4444"
-    SUCCESS: str = "#22C55E"
+    HEADER_BG: str = "#312E81"
+    HEADER_ACCENT: str = "#4338CA"
+    HEADER_TEXT: str = "#F9FAFB"
+    HEADER_SUBTITLE: str = "#C7D2FE"
+    BG: str = "#111827"
+    FRAME_BG: str = "#1F2937"
+    SURFACE: str = "#1F2937"
+    SURFACE_ALT: str = "#161E2E"
+    TEXT: str = "#F9FAFB"
+    TEXT_MUTED: str = "#9CA3AF"
+    FG_SECONDARY: str = "#8B95A9"
+    PRIMARY: str = "#818CF8"
+    PRIMARY_LIGHT: str = "#1E1B4B"
+    BORDER: str = "#374151"
+    BORDER_STRONG: str = "#4B5563"
+    STRIPE_ODD: str = "#1F2937"
+    STRIPE_EVEN: str = "#161E2E"
+    HIGHLIGHT: str = "#1E1B4B"
+    DANGER: str = "#F87171"
+    SUCCESS: str = "#34D399"
     WARNING: str = "#FBBF24"
-    BUTTON_BG: str = "#334155"
-    BUTTON_ACTIVE: str = "#475569"
-    BUTTON_DISABLED: str = "#1E293B"
-    ACCENT_HOVER: str = "#60A5FA"
-    ACCENT_DISABLED: str = "#334155"
+    BUTTON_BG: str = "#374151"
+    BUTTON_ACTIVE: str = "#4B5563"
+    BUTTON_DISABLED: str = "#1F2937"
+    ACCENT_HOVER: str = "#A5B4FC"
+    ACCENT_DISABLED: str = "#374151"
+    ACCENT_SOFT: str = "#1E1B4B"
     DANGER_HOVER: str = "#FCA5A5"
-    TREE_HEADING_BG: str = "#1E293B"
-    TREE_HEADING_ACTIVE: str = "#334155"
-    TROUGH: str = "#334155"
-    NOTEBOOK_TAB_BG: str = "#1E293B"
-    METRIC_TOTAL: str = "#60A5FA"
+    SUCCESS_SOFT: str = "#064E3B"
+    WARNING_SOFT: str = "#78350F"
+    DANGER_SOFT: str = "#7F1D1D"
+    TREE_HEADING_BG: str = "#1F2937"
+    TREE_HEADING_ACTIVE: str = "#374151"
+    TROUGH: str = "#374151"
+    NOTEBOOK_TAB_BG: str = "#1F2937"
+    SIDEBAR_BG: str = "#0D1117"
+    SIDEBAR_FG: str = "#D1D5DB"
+    SIDEBAR_MUTED: str = "#6B7280"
+    SIDEBAR_ACTIVE: str = "#A5B4FC"
+    SIDEBAR_HOVER: str = "#161B22"
+    METRIC_TOTAL: str = "#818CF8"
     METRIC_USED: str = "#FBBF24"
-    METRIC_FREE: str = "#4ADE80"
+    METRIC_FREE: str = "#34D399"
     METRIC_SCAN: str = "#C084FC"
+    CHART_1: str = "#818CF8"
+    CHART_2: str = "#2DD4BF"
+    CHART_3: str = "#FBBF24"
+    CHART_4: str = "#F87171"
+    CHART_5: str = "#C084FC"
+    CHART_6: str = "#22D3EE"
+    CHART_7: str = "#A3E635"
 
 
 Palette: type = LightPalette
@@ -919,9 +961,205 @@ def save_cache(result: ScanResult) -> None:
         logger.debug("保存缓存失败: %s", e)
 
 
+# ========== 自定义控件 ==========
+class RoundedFrame(tk.Canvas):
+    """带圆角背景的容器控件，内部放置 .inner Frame 供子控件布局。"""
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        radius: int = 10,
+        bg: str = "#FFFFFF",
+        border_color: str = "#E5E7EB",
+        border_width: int = 1,
+        **kwargs: Any,
+    ) -> None:
+        self._radius = radius
+        self._bg = bg
+        self._border_color = border_color
+        self._border_width = border_width
+        super().__init__(
+            parent,
+            highlightthickness=0,
+            bd=0,
+            bg=parent["bg"] if hasattr(parent, "__getitem__") else bg,
+            **kwargs,
+        )
+        self.inner = ttk.Frame(self, style="Card.TFrame")
+        self._win_id = self.create_window(0, 0, window=self.inner, anchor="nw")
+        self.bind("<Configure>", self._on_resize)
+
+    def _on_resize(self, event: tk.Event) -> None:
+        self._draw(event.width, event.height)
+        self.coords(self._win_id, event.width // 2, event.height // 2)
+        self.itemconfigure(self._win_id, width=event.width, height=event.height)
+
+    def _draw(self, w: int, h: int) -> None:
+        self.delete("bg")
+        r = self._radius
+        if w < 2 * r or h < 2 * r:
+            r = min(w, h) // 2
+        points: List[int] = []
+        for x, y in [(r, r), (w - r, r), (w - r, h - r), (r, h - r)]:
+            points.extend([x, y])
+        # 四个圆角弧
+        self.create_arc(
+            0, 0, 2 * r, 2 * r, start=90, extent=90, fill=self._bg,
+            outline=self._border_color, width=self._border_width, tags="bg",
+        )
+        self.create_arc(
+            w - 2 * r, 0, w, 2 * r, start=0, extent=90, fill=self._bg,
+            outline=self._border_color, width=self._border_width, tags="bg",
+        )
+        self.create_arc(
+            w - 2 * r, h - 2 * r, w, h, start=270, extent=90, fill=self._bg,
+            outline=self._border_color, width=self._border_width, tags="bg",
+        )
+        self.create_arc(
+            0, h - 2 * r, 2 * r, h, start=180, extent=90, fill=self._bg,
+            outline=self._border_color, width=self._border_width, tags="bg",
+        )
+        # 填充矩形（覆盖弧之间的空白）
+        self.create_rectangle(
+            r, 0, w - r, h, fill=self._bg, outline=self._bg, tags="bg",
+        )
+        self.create_rectangle(
+            0, r, w, h - r, fill=self._bg, outline=self._bg, tags="bg",
+        )
+        # 边框线
+        if self._border_width > 0:
+            self.create_line(r, 0, w - r, 0, fill=self._border_color, width=self._border_width, tags="bg")
+            self.create_line(r, h, w - r, h, fill=self._border_color, width=self._border_width, tags="bg")
+            self.create_line(0, r, 0, h - r, fill=self._border_color, width=self._border_width, tags="bg")
+            self.create_line(w, r, w, h - r, fill=self._border_color, width=self._border_width, tags="bg")
+
+    def configure_colors(self, bg: str, border_color: str) -> None:
+        self._bg = bg
+        self._border_color = border_color
+        w, h = self.winfo_width(), self.winfo_height()
+        if w > 1 and h > 1:
+            self._draw(w, h)
+
+
+class ToggleSwitch(tk.Canvas):
+    """仿 iOS 风格的开关控件。"""
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        variable: tk.BooleanVar,
+        command: Optional[Callable] = None,
+        **kwargs: Any,
+    ) -> None:
+        self._var = variable
+        self._command = command
+        self._on_color = "#4F46E5"
+        self._off_color = "#D1D5DB"
+        self._knob_color = "#FFFFFF"
+        super().__init__(
+            parent, width=40, height=22, highlightthickness=0, bd=0,
+            bg=parent["bg"] if hasattr(parent, "__getitem__") else "#FFFFFF",
+            **kwargs,
+        )
+        self.bind("<Button-1>", self._on_click)
+        self._draw()
+
+    def _draw(self) -> None:
+        self.delete("all")
+        on = self._var.get()
+        color = self._on_color if on else self._off_color
+        # 圆角药丸背景
+        self.create_oval(2, 2, 22, 20, fill=color, outline=color)
+        self.create_oval(18, 2, 38, 20, fill=color, outline=color)
+        self.create_rectangle(11, 2, 29, 20, fill=color, outline=color)
+        # 圆形旋钮
+        kx = 28 if on else 10
+        self.create_oval(kx, 3, kx + 16, 19, fill=self._knob_color, outline=self._knob_color)
+
+    def _on_click(self, _event: tk.Event) -> None:
+        self._var.set(not self._var.get())
+        self._draw()
+        if self._command:
+            self._command()
+
+    def set_colors(self, on_color: str, off_color: str) -> None:
+        self._on_color = on_color
+        self._off_color = off_color
+        self._draw()
+
+
+class ScrollableFrame(tk.Frame):
+    """可垂直滚动的 Frame 容器。"""
+
+    def __init__(self, parent: tk.Widget, **kwargs: Any) -> None:
+        super().__init__(parent, **kwargs)
+        self._canvas = tk.Canvas(
+            self, highlightthickness=0, bd=0,
+            bg=kwargs.get("bg", "#FFFFFF"),
+        )
+        self._scrollbar = ttk.Scrollbar(self, orient="vertical", command=self._canvas.yview)
+        self.inner = ttk.Frame(self._canvas, style="Card.TFrame")
+        self.inner.bind("<Configure>", self._on_frame_configure)
+        self._canvas.bind("<Configure>", self._on_canvas_configure)
+        self._win_id = self._canvas.create_window((0, 0), window=self.inner, anchor="nw")
+        self._canvas.configure(yscrollcommand=self._scrollbar.set)
+        self._canvas.pack(side="left", fill="both", expand=True)
+        self._scrollbar.pack(side="right", fill="y")
+        # 鼠标滚轮绑定
+        self.inner.bind("<Enter>", self._bind_mousewheel)
+        self.inner.bind("<Leave>", self._unbind_mousewheel)
+
+    def _on_frame_configure(self, _event: tk.Event) -> None:
+        self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+
+    def _on_canvas_configure(self, event: tk.Event) -> None:
+        self._canvas.itemconfigure(self._win_id, width=event.width)
+
+    def _bind_mousewheel(self, _event: tk.Event) -> None:
+        if sys.platform == "win32":
+            self._canvas.bind_all("<MouseWheel>", self._on_mousewheel_win)
+        else:
+            self._canvas.bind_all("<Button-4>", self._on_mousewheel_up)
+            self._canvas.bind_all("<Button-5>", self._on_mousewheel_down)
+
+    def _unbind_mousewheel(self, _event: tk.Event) -> None:
+        if sys.platform == "win32":
+            self._canvas.unbind_all("<MouseWheel>")
+        else:
+            self._canvas.unbind_all("<Button-4>")
+            self._canvas.unbind_all("<Button-5>")
+
+    def _on_mousewheel_win(self, event: tk.Event) -> None:
+        self._canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+    def _on_mousewheel_up(self, _event: tk.Event) -> None:
+        self._canvas.yview_scroll(-1, "units")
+
+    def _on_mousewheel_down(self, _event: tk.Event) -> None:
+        self._canvas.yview_scroll(1, "units")
+
+    def update_bg(self, bg: str) -> None:
+        self._canvas.configure(bg=bg)
+
+
 # ========== GUI ==========
 class DiskAnalyzerApp:
     JUNK_KEYWORDS: Tuple[str, ...] = ("log", "backup", "cache", "temp")
+
+    # 面板名称列表
+    PANEL_NAMES: List[str] = [
+        "overview", "large_files", "duplicates", "temp_files",
+        "ai_clean", "history", "settings",
+    ]
+    PANEL_TITLES: Dict[str, str] = {
+        "overview": "概览",
+        "large_files": "大文件",
+        "duplicates": "重复文件",
+        "temp_files": "临时文件",
+        "ai_clean": "智能清理",
+        "history": "历史记录",
+        "settings": "设置",
+    }
 
     def __init__(self, root: tk.Tk) -> None:
         self.root: tk.Tk = root
@@ -933,48 +1171,67 @@ class DiskAnalyzerApp:
         self.scanner: Optional[FastScanner] = None
         self.scan_thread: Optional[threading.Thread] = None
         self.last_update_time: float = 0
+        self._last_progress_msg: str = ""
         self._last_scan_result: Optional[ScanResult] = None
         self._dir_size_cache: Dict[str, int] = {}
         self._loaded_cache: bool = False
         self._theme_name: str = "light"
+        self._current_panel: str = "overview"
 
-        self.tree_dirs: Optional[ttk.Treeview] = None
-        self.tree_files: Optional[ttk.Treeview] = None
-        self.tree_ext: Optional[ttk.Treeview] = None
+        # Treeview widgets
+        self.tree_top_dirs: Optional[ttk.Treeview] = None
+        self.tree_large_files: Optional[ttk.Treeview] = None
         self.tree_junk: Optional[ttk.Treeview] = None
-        self.tree_age: Optional[ttk.Treeview] = None
-        self.tree_filetree: Optional[ttk.Treeview] = None
-        self.tree_dup: Optional[ttk.Treeview] = None  # P3: 重复文件
-        self._loaded_nodes: set = set()
+        self.tree_dup: Optional[ttk.Treeview] = None
         self._detached_parent_map: Dict[str, str] = {}
         self._last_sort_col: Dict[ttk.Treeview, str] = {}
         self._last_sort_reverse: Dict[ttk.Treeview, bool] = {}
 
+        # Scan controls
         self.path_var: tk.StringVar = tk.StringVar()
         self.path_entry: Optional[ttk.Entry] = None
         self.scan_btn: Optional[ttk.Button] = None
         self.stop_btn: Optional[ttk.Button] = None
+        self._rescan_btn: Optional[ttk.Button] = None
         self.simulate_mode_var: tk.BooleanVar = tk.BooleanVar(value=False)
-        self.enable_dup_var: tk.BooleanVar = tk.BooleanVar(value=False)  # 重复文件检测开关
+        self.enable_dup_var: tk.BooleanVar = tk.BooleanVar(value=False)
         self.top_n_var: tk.IntVar = tk.IntVar(value=self.config.top_n)
         self.progress_var: tk.IntVar = tk.IntVar()
         self.progress_bar: Optional[ttk.Progressbar] = None
         self.status_label: Optional[ttk.Label] = None
-        self.disk_text: Optional[tk.Text] = None
         self.theme_btn: Optional[ttk.Button] = None
-        self.notebook: Optional[ttk.Notebook] = None
-        self.tab_filetree: Optional[ttk.Frame] = None
-        self.tab_age: Optional[ttk.Frame] = None
-        self.tab_dup: Optional[ttk.Frame] = None  # P3
-        self._pie_canvas: Optional[tk.Canvas] = None  # P3
-        self.dup_summary: Optional[ttk.Label] = None  # P3
+
+        # Sidebar nav buttons
+        self._nav_buttons: Dict[str, tk.Frame] = {}
+        self._nav_labels: Dict[str, tk.Label] = {}
+        self._nav_bars: Dict[str, tk.Canvas] = {}
+
+        # Panels
+        self._panels: Dict[str, ttk.Frame] = {}
+        self._sidebar: Optional[tk.Frame] = None
+        self._sidebar_labels: List[tk.Label] = []
+        self._topbar_title: Optional[ttk.Label] = None
+        self._topbar_sub: Optional[ttk.Label] = None
+
+        # Overview stat cards
+        self._stat_labels: Dict[str, ttk.Label] = {}
+        self._donut_canvas: Optional[tk.Canvas] = None
+        self._health_bars: Dict[str, tk.Canvas] = {}
+
         # LLM
-        self.tab_llm: Optional[ttk.Frame] = None
         self._llm_text: Optional[tk.Text] = None
         self._llm_btn: Optional[ttk.Button] = None
+        self._llm_stop_btn: Optional[ttk.Button] = None
         self._llm_analyzer: Optional[LLMAnalyzer] = None
         self._llm_streaming: bool = False
+        self._llm_line_buffer: str = ""
+        self._llm_status: Optional[ttk.Label] = None
         self._context_menus: List[tk.Menu] = []
+
+        # History
+        self._history_file: str = os.path.join(
+            os.path.expanduser("~/.disk_analyzer"), "history.json"
+        )
 
         self._apply_palette()
         self._setup_styles()
@@ -1003,8 +1260,8 @@ class DiskAnalyzerApp:
                     data = json.load(f)
                 if "geometry" in data:
                     self.root.geometry(data["geometry"])
-                if "notebook_index" in data and self.notebook is not None:
-                    self.notebook.select(data["notebook_index"])
+                if "current_panel" in data:
+                    self._show_panel(data["current_panel"])
         except Exception:
             pass
 
@@ -1013,11 +1270,7 @@ class DiskAnalyzerApp:
         try:
             data = {
                 "geometry": self.root.geometry(),
-                "notebook_index": (
-                    self.notebook.index(self.notebook.select())
-                    if self.notebook is not None
-                    else 0
-                ),
+                "current_panel": self._current_panel,
             }
             with open(GEOMETRY_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f)
@@ -1046,6 +1299,8 @@ class DiskAnalyzerApp:
 
         style.configure(".", font=base_font, background=Palette.BG, foreground=Palette.TEXT)
         style.configure("Card.TFrame", background=Palette.FRAME_BG)
+        style.configure("Sidebar.TFrame", background=Palette.SIDEBAR_BG)
+        style.configure("Topbar.TFrame", background=Palette.FRAME_BG)
         style.configure("TLabelframe", background=Palette.BG, bordercolor=Palette.BORDER)
         style.configure(
             "TLabelframe.Label",
@@ -1059,9 +1314,10 @@ class DiskAnalyzerApp:
             padding=(14, 6),
             relief="flat",
             background=Palette.BUTTON_BG,
-            borderwidth=0,
+            borderwidth=1,
             foreground=Palette.TEXT,
             font=(base_font[0], 9),
+            bordercolor=Palette.BORDER,
         )
         style.map(
             "TButton",
@@ -1069,6 +1325,7 @@ class DiskAnalyzerApp:
                 ("active", Palette.BUTTON_ACTIVE),
                 ("disabled", Palette.BUTTON_DISABLED),
             ],
+            bordercolor=[("active", Palette.BORDER)],
         )
         style.configure(
             "Accent.TButton",
@@ -1076,6 +1333,8 @@ class DiskAnalyzerApp:
             foreground="white",
             font=(base_font[0], 10, "bold"),
             padding=(20, 7),
+            borderwidth=0,
+            bordercolor=Palette.PRIMARY,
         )
         style.map(
             "Accent.TButton",
@@ -1083,8 +1342,9 @@ class DiskAnalyzerApp:
                 ("active", Palette.ACCENT_HOVER),
                 ("disabled", Palette.ACCENT_DISABLED),
             ],
+            bordercolor=[("active", Palette.ACCENT_HOVER)],
         )
-        style.configure("Danger.TButton", background=Palette.DANGER, foreground="white")
+        style.configure("Danger.TButton", background=Palette.DANGER, foreground="white", borderwidth=0)
         style.map("Danger.TButton", background=[("active", Palette.DANGER_HOVER)])
 
         style.configure(
@@ -1094,12 +1354,12 @@ class DiskAnalyzerApp:
             bordercolor=Palette.BG,
             lightcolor=Palette.PRIMARY,
             darkcolor=Palette.PRIMARY,
-            thickness=6,
+            thickness=8,
         )
 
         style.configure(
             "Treeview",
-            rowheight=28,
+            rowheight=32,
             font=tree_font,
             background=Palette.FRAME_BG,
             fieldbackground=Palette.FRAME_BG,
@@ -1109,78 +1369,172 @@ class DiskAnalyzerApp:
         style.map(
             "Treeview",
             background=[("selected", Palette.HIGHLIGHT)],
-            foreground=[("selected", Palette.TEXT)],
+            foreground=[("selected", Palette.PRIMARY)],
         )
         style.configure(
             "Treeview.Heading",
-            font=(base_font[0], 8, "bold"),
+            font=(base_font[0], 9, "bold"),
             background=Palette.TREE_HEADING_BG,
             foreground=Palette.TEXT_MUTED,
             relief="flat",
-            padding=(6, 6),
+            padding=(8, 8),
         )
         style.map("Treeview.Heading", background=[("active", Palette.TREE_HEADING_ACTIVE)])
 
-        style.configure("TNotebook", background=Palette.BG, borderwidth=0)
-        style.configure(
-            "TNotebook.Tab",
-            padding=(18, 9),
-            font=(base_font[0], 10),
-            background=Palette.NOTEBOOK_TAB_BG,
-            foreground=Palette.TEXT_MUTED,
-        )
-        style.map(
-            "TNotebook.Tab",
-            background=[("selected", Palette.FRAME_BG)],
-            foreground=[("selected", Palette.PRIMARY)],
-            expand=[("selected", [0, 0, 0, 3])],
-        )
-
-        # 纤细滚动条 (现代风格)
         style.configure("Vertical.TScrollbar", gripcount=0, background=Palette.BORDER,
-                        troughcolor=Palette.BG, arrowcolor=Palette.TEXT_MUTED, width=8)
+                        troughcolor=Palette.BG, arrowcolor=Palette.TEXT_MUTED, width=10)
         style.configure("Horizontal.TScrollbar", gripcount=0, background=Palette.BORDER,
-                        troughcolor=Palette.BG, arrowcolor=Palette.TEXT_MUTED, height=8)
+                        troughcolor=Palette.BG, arrowcolor=Palette.TEXT_MUTED, height=10)
 
-        # 现代圆角输入框
         style.configure("Modern.TEntry",
-                        fieldbackground=Palette.BG,
+                        fieldbackground=Palette.FRAME_BG,
                         foreground=Palette.TEXT,
                         bordercolor=Palette.BORDER,
                         lightcolor=Palette.BORDER,
                         darkcolor=Palette.BORDER,
-                        padding=6)
+                        padding=8)
         style.map("Modern.TEntry",
                   fieldbackground=[("focus", Palette.FRAME_BG)],
                   foreground=[("focus", Palette.TEXT)],
                   bordercolor=[("focus", Palette.PRIMARY)])
 
+        # Tag styles for badges
+        style.configure("Tag.TLabel", font=(base_font[0], 8), padding=(6, 2))
+        style.configure("TagAccent.TLabel", background=Palette.ACCENT_SOFT, foreground=Palette.PRIMARY)
+        style.configure("TagSuccess.TLabel", background=Palette.SUCCESS_SOFT, foreground=Palette.SUCCESS)
+        style.configure("TagWarning.TLabel", background=Palette.WARNING_SOFT, foreground=Palette.WARNING)
+        style.configure("TagDanger.TLabel", background=Palette.DANGER_SOFT, foreground=Palette.DANGER)
+        style.configure("StatValue.TLabel", font=(base_font[0], 20, "bold"), foreground=Palette.TEXT)
+        style.configure("StatLabel.TLabel", font=(base_font[0], 9), foreground=Palette.TEXT_MUTED)
+        style.configure("Nav.TLabel", font=(base_font[0], 10), foreground=Palette.SIDEBAR_FG,
+                        background=Palette.SIDEBAR_BG)
+        style.configure("NavActive.TLabel", font=(base_font[0], 10, "bold"), foreground=Palette.SIDEBAR_ACTIVE,
+                        background=Palette.SIDEBAR_BG)
+
     def _create_widgets(self) -> None:
         # ================================================================
-        # 1. 渐变头部横幅 (Canvas)
+        # 1. 侧栏 (深色，固定宽度 220px)
         # ================================================================
-        self._header_canvas = tk.Canvas(self.root, height=88, highlightthickness=0, bd=0)
-        self._header_canvas.pack(fill=tk.X)
-        self._draw_gradient_header()
-        self._header_resize_job: Optional[str] = None
-        def _debounced_header_draw(event: tk.Event) -> None:
-            if self._header_resize_job:
-                self.root.after_cancel(self._header_resize_job)
-            self._header_resize_job = self.root.after(80, self._draw_gradient_header)
-        self._header_canvas.bind("<Configure>", _debounced_header_draw)
+        self._sidebar = tk.Frame(self.root, width=220, bg=Palette.SIDEBAR_BG)
+        self._sidebar.pack(side=tk.LEFT, fill=tk.Y)
+        self._sidebar.pack_propagate(False)
+
+        # Logo 区域
+        logo_frame = tk.Frame(self._sidebar, bg=Palette.SIDEBAR_BG)
+        logo_frame.pack(fill=tk.X, padx=16, pady=(20, 16))
+        logo_icon = tk.Canvas(logo_frame, width=32, height=32, bg=Palette.SIDEBAR_BG,
+                              highlightthickness=0, bd=0)
+        logo_icon.pack(side=tk.LEFT)
+        # 画一个简化的磁盘图标
+        logo_icon.create_oval(2, 2, 30, 30, fill=Palette.PRIMARY, outline=Palette.SIDEBAR_ACTIVE, width=2)
+        logo_icon.create_text(16, 16, text="D", fill="white", font=("", 12, "bold"))
+        logo_text_frame = tk.Frame(logo_frame, bg=Palette.SIDEBAR_BG)
+        logo_text_frame.pack(side=tk.LEFT, padx=(10, 0))
+        tk.Label(logo_text_frame, text="磁盘分析器", font=("", 13, "bold"),
+                 fg=Palette.SIDEBAR_FG, bg=Palette.SIDEBAR_BG).pack(anchor="w")
+        tk.Label(logo_text_frame, text="v2.0", font=("", 8),
+                 fg=Palette.SIDEBAR_MUTED, bg=Palette.SIDEBAR_BG).pack(anchor="w")
+
+        # 导航区域
+        nav_sections = [
+            ("存储分析", [
+                ("overview", "概览", "📊"),
+                ("large_files", "大文件", "📁"),
+                ("duplicates", "重复文件", "🔍"),
+                ("temp_files", "临时文件", "🗑️"),
+            ]),
+            ("智能工具", [
+                ("ai_clean", "智能清理", "🤖"),
+                ("history", "历史记录", "📅"),
+                ("settings", "设置", "⚙️"),
+            ]),
+        ]
+
+        for section_title, items in nav_sections:
+            # 分区标题
+            sec_label = tk.Label(self._sidebar, text=section_title, font=("", 8),
+                                 fg=Palette.SIDEBAR_MUTED, bg=Palette.SIDEBAR_BG,
+                                 anchor="w", padx=16)
+            sec_label.pack(fill=tk.X, pady=(16, 4))
+            self._sidebar_labels.append(sec_label)
+
+            for panel_name, label_text, icon in items:
+                btn_frame = tk.Frame(self._sidebar, bg=Palette.SIDEBAR_BG, cursor="hand2")
+                btn_frame.pack(fill=tk.X, padx=8, pady=1)
+
+                # 左侧活跃指示条
+                bar = tk.Canvas(btn_frame, width=3, height=32, bg=Palette.SIDEBAR_BG,
+                                highlightthickness=0, bd=0)
+                bar.pack(side=tk.LEFT, padx=(0, 0))
+
+                # 图标+文字
+                nav_label = tk.Label(
+                    btn_frame, text=f" {icon}  {label_text}", font=("", 10),
+                    fg=Palette.SIDEBAR_FG, bg=Palette.SIDEBAR_BG,
+                    anchor="w", padx=12, pady=6,
+                )
+                nav_label.pack(fill=tk.X)
+
+                self._nav_buttons[panel_name] = btn_frame
+                self._nav_labels[panel_name] = nav_label
+                self._nav_bars[panel_name] = bar
+
+                # 绑定点击事件
+                for widget in (btn_frame, nav_label):
+                    widget.bind("<Button-1>", lambda e, p=panel_name: self._show_panel(p))
+                    widget.bind("<Enter>", lambda e, p=panel_name: self._nav_hover(p, True))
+                    widget.bind("<Leave>", lambda e, p=panel_name: self._nav_hover(p, False))
+
+        # 底部空间
+        spacer = tk.Frame(self._sidebar, bg=Palette.SIDEBAR_BG)
+        spacer.pack(fill=tk.BOTH, expand=True)
+
+        # 底部版本信息
+        footer = tk.Frame(self._sidebar, bg=Palette.SIDEBAR_BG)
+        footer.pack(fill=tk.X, padx=16, pady=(0, 16))
+        tk.Label(footer, text="磁盘空间分析工具", font=("", 8),
+                 fg=Palette.SIDEBAR_MUTED, bg=Palette.SIDEBAR_BG).pack(anchor="w")
+        tk.Label(footer, text="v2.0 · Python/Tkinter", font=("", 7),
+                 fg=Palette.SIDEBAR_MUTED, bg=Palette.SIDEBAR_BG).pack(anchor="w")
 
         # ================================================================
-        # 2. 工具栏 (两行布局：第一行路径+扫描，第二行选项+工具)
+        # 2. 主区域 (顶栏 + 内容面板)
         # ================================================================
-        toolbar = ttk.Frame(self.root, padding=(16, 10, 16, 4))
-        toolbar.pack(fill=tk.X)
-        toolbar.columnconfigure(1, weight=1)
+        main_area = ttk.Frame(self.root)
+        main_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # -- Row 0: 路径 + 扫描按钮 + 分区 --
-        ttk.Label(toolbar, text="路径:", font=("", 9, "bold")).grid(
+        # 顶栏
+        topbar = ttk.Frame(main_area, style="Topbar.TFrame", padding=(20, 12, 20, 12))
+        topbar.pack(fill=tk.X)
+        topbar_left = ttk.Frame(topbar, style="Topbar.TFrame")
+        topbar_left.pack(side=tk.LEFT)
+        self._topbar_title = ttk.Label(topbar_left, text="概览", font=("", 16, "bold"),
+                                       foreground=Palette.TEXT, background=Palette.FRAME_BG)
+        self._topbar_title.pack(anchor="w")
+        self._topbar_sub = ttk.Label(topbar_left, text="快速了解磁盘空间使用情况",
+                                     font=("", 9), foreground=Palette.TEXT_MUTED,
+                                     background=Palette.FRAME_BG)
+        self._topbar_sub.pack(anchor="w")
+
+        topbar_right = ttk.Frame(topbar, style="Topbar.TFrame")
+        topbar_right.pack(side=tk.RIGHT)
+
+        self.theme_btn = ttk.Button(topbar_right, text="🌙", width=4, command=self._toggle_theme)
+        self.theme_btn.pack(side=tk.RIGHT, padx=(4, 0))
+
+        self._rescan_btn = ttk.Button(
+            topbar_right, text="  重新扫描  ", command=self.start_scan, style="Accent.TButton"
+        )
+        self._rescan_btn.pack(side=tk.RIGHT, padx=(8, 0))
+
+        # 扫描路径行
+        path_frame = ttk.Frame(main_area, padding=(20, 4, 20, 4))
+        path_frame.pack(fill=tk.X)
+        path_frame.columnconfigure(1, weight=1)
+        ttk.Label(path_frame, text="路径:", font=("", 9, "bold")).grid(
             row=0, column=0, padx=(0, 6), sticky="w"
         )
-        self.path_entry = ttk.Entry(toolbar, textvariable=self.path_var, font=("", 10))
+        self.path_entry = ttk.Entry(path_frame, textvariable=self.path_var, font=("", 10))
         self.path_entry.grid(row=0, column=1, sticky="ew", padx=(0, 8))
         self.path_entry.bind("<Return>", lambda e: self.start_scan())
         self.root.bind("<F5>", lambda e: self.start_scan())
@@ -1188,69 +1542,30 @@ class DiskAnalyzerApp:
         self.root.bind("<Escape>", lambda e: self.stop_scan())
 
         self.scan_btn = ttk.Button(
-            toolbar, text="  开始扫描 (F5)  ", command=self.start_scan, style="Accent.TButton"
+            path_frame, text="  开始扫描 (F5)  ", command=self.start_scan, style="Accent.TButton"
         )
         self.scan_btn.grid(row=0, column=2, padx=(0, 4))
         self.stop_btn = ttk.Button(
-            toolbar, text="停止 (Esc)", command=self.stop_scan, state=tk.DISABLED
+            path_frame, text="停止 (Esc)", command=self.stop_scan, state=tk.DISABLED
         )
-        self.stop_btn.grid(row=0, column=3, padx=(0, 8))
+        self.stop_btn.grid(row=0, column=3, padx=(0, 4))
+        ttk.Button(path_frame, text="浏览", command=self.browse_path).grid(row=0, column=4)
 
-        ttk.Button(toolbar, text="浏览", command=self.browse_path).grid(
-            row=0, column=4, padx=(0, 8)
-        )
-
-        # P2: 分区选择器（延迟加载避免阻塞启动）
+        # 分区选择器
         self.partition_var = tk.StringVar(value="加载中...")
         self._partition_paths: Dict[str, str] = {}
-        self._partition_toolbar = toolbar
+        self._partition_toolbar = path_frame
         self._partition_next_col = 6
-        part_placeholder = ttk.Label(toolbar, text="加载分区中...", font=("", 9))
-        part_placeholder.grid(row=0, column=5, padx=(0, 8), sticky="w")
+        part_placeholder = ttk.Label(path_frame, text="加载分区中...", font=("", 9))
+        part_placeholder.grid(row=0, column=5, padx=(8, 0), sticky="w")
         self._partition_placeholder = part_placeholder
         self.root.after(200, self._load_partitions)
 
-        # -- Row 1: 选项 + 工具按钮 --
-        row1 = ttk.Frame(toolbar)
-        row1.grid(row=1, column=0, columnspan=7, sticky="ew", pady=(6, 0))
-
-        ttk.Label(row1, text="Top", font=("", 9)).pack(side=tk.LEFT, padx=(0, 2))
-        ttk.Spinbox(
-            row1, from_=5, to=100, width=4, textvariable=self.top_n_var
-        ).pack(side=tk.LEFT, padx=(0, 12))
-
-        ttk.Checkbutton(
-            row1,
-            text="检测重复大文件 (>=100MB)",
-            variable=self.enable_dup_var
-        ).pack(side=tk.LEFT, padx=(0, 12))
-
-        ttk.Checkbutton(
-            row1, text="模拟预览（不真实删除）", variable=self.simulate_mode_var
-        ).pack(side=tk.LEFT, padx=(0, 12))
-
-        # 右侧工具按钮
-        ttk.Button(row1, text="导出", command=self.export_report).pack(
-            side=tk.RIGHT, padx=(4, 0)
-        )
-        ttk.Button(row1, text="配置", command=self.open_config_dialog).pack(
-            side=tk.RIGHT, padx=(4, 0)
-        )
-        self.theme_btn = ttk.Button(row1, text="🌙", width=4, command=self._toggle_theme)
-        self.theme_btn.pack(side=tk.RIGHT, padx=(4, 0))
-
-        # 分隔线
-        ttk.Separator(self.root, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=16)
-
-        # ================================================================
-        # 3. 进度条 + 状态 (飞书风格：清新间距)
-        # ================================================================
-        progress_frame = ttk.Frame(self.root, padding=(16, 8, 16, 4))
+        # 进度条
+        progress_frame = ttk.Frame(main_area, padding=(20, 2, 20, 2))
         progress_frame.pack(fill=tk.X)
         self.progress_bar = ttk.Progressbar(
-            progress_frame,
-            variable=self.progress_var,
-            maximum=100,
+            progress_frame, variable=self.progress_var, maximum=100,
             style="Modern.Horizontal.TProgressbar",
         )
         self.progress_bar.pack(fill=tk.X)
@@ -1260,67 +1575,39 @@ class DiskAnalyzerApp:
         self.status_label.pack(fill=tk.X, pady=(2, 0))
 
         # ================================================================
-        # 4. 选项卡区域
+        # 3. 内容面板区域
         # ================================================================
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=16, pady=(6, 0))
+        self._content_frame = ttk.Frame(main_area)
+        self._content_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
 
-        self.tab_main = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(self.tab_main, text=" 📁 大目录 & 大文件 ")
-        self._create_main_tab()
+        # 创建所有面板（初始隐藏）
+        self._panels["overview"] = ttk.Frame(self._content_frame, style="Card.TFrame")
+        self._panels["large_files"] = ttk.Frame(self._content_frame, style="Card.TFrame")
+        self._panels["duplicates"] = ttk.Frame(self._content_frame, style="Card.TFrame")
+        self._panels["temp_files"] = ttk.Frame(self._content_frame, style="Card.TFrame")
+        self._panels["ai_clean"] = ttk.Frame(self._content_frame, style="Card.TFrame")
+        self._panels["history"] = ttk.Frame(self._content_frame, style="Card.TFrame")
+        self._panels["settings"] = ttk.Frame(self._content_frame, style="Card.TFrame")
 
-        self.tab_filetree = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(self.tab_filetree, text=" 🌳 目录树 ")
-        self._create_filetree_tab()
-
-        self.tab_ext = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(self.tab_ext, text=" 📊 文件类型 ")
-        # Left-right split: treeview + pie chart
-        ext_paned = ttk.PanedWindow(self.tab_ext, orient=tk.HORIZONTAL)
-        ext_paned.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
-        ext_left = ttk.Frame(ext_paned)
-        ext_paned.add(ext_left, weight=2)
-        ext_right = ttk.Frame(ext_paned)
-        ext_paned.add(ext_right, weight=1)
-        self.tree_ext = self._create_treeview(
-            ext_left,
-            [("ext", "扩展名", 200), ("size", "总大小", 200)],
-        )
-        self._add_filter(ext_left, self.tree_ext)
-        self._pie_canvas = tk.Canvas(ext_right, highlightthickness=0, bd=0)
-        self._pie_canvas.pack(fill=tk.BOTH, expand=True)
-
-        self.tab_junk = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(self.tab_junk, text=" 🗑️ 建议清理 ")
-        self._create_junk_tab()
-
-        self.tab_age = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(self.tab_age, text=" 📅 文件年龄 ")
-        self._create_age_tab()
-
-        # P3: 重复文件 Tab
-        self.tab_dup = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(self.tab_dup, text=" 🔍 重复文件 ")
-        self._create_dup_tab()
-
-        # LLM 分析 Tab
-        self.tab_llm = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(self.tab_llm, text=" 🤖 AI 分析 ")
-        self._create_llm_tab()
+        self._create_panel_overview()
+        self._create_panel_large_files()
+        self._create_panel_duplicates()
+        self._create_panel_temp_files()
+        self._create_panel_ai_clean()
+        self._create_panel_history()
+        self._create_panel_settings()
 
         self._create_context_menus()
 
-        # Tab change: show scan hint in status bar when switching to empty tabs
-        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+        # 显示默认面板
+        self._show_panel("overview")
 
-        # Tab keyboard shortcuts: Ctrl+1 ~ Ctrl+7
-        for i in range(7):
-            self.root.bind(f"<Control-Key-{i + 1}>", lambda e, idx=i: self._select_tab(idx))
+        # 面板切换快捷键 Ctrl+1~7
+        for i, name in enumerate(self.PANEL_NAMES):
+            self.root.bind(f"<Control-Key-{i + 1}>", lambda e, p=name: self._show_panel(p))
 
-        # ================================================================
-        # 5. 底部状态栏
-        # ================================================================
-        self._status_bar = ttk.Frame(self.root, padding=(16, 4))
+        # 底部状态栏
+        self._status_bar = ttk.Frame(main_area, padding=(16, 4))
         self._status_bar.pack(fill=tk.X, side=tk.BOTTOM)
         ttk.Separator(self._status_bar, orient=tk.HORIZONTAL).pack(fill=tk.X)
         status_inner = ttk.Frame(self._status_bar)
@@ -1328,88 +1615,303 @@ class DiskAnalyzerApp:
         self._sb_left = ttk.Label(status_inner, text="就绪", font=("", 8), foreground=Palette.TEXT_MUTED)
         self._sb_left.pack(side=tk.LEFT)
         self._sb_right = ttk.Label(
-            status_inner,
-            text="F5 扫描 | Ctrl+O 浏览 | Esc 停止",
-            font=("", 8),
-            foreground=Palette.TEXT_MUTED,
+            status_inner, text="F5 扫描 | Ctrl+O 浏览 | Esc 停止",
+            font=("", 8), foreground=Palette.TEXT_MUTED,
         )
         self._sb_right.pack(side=tk.RIGHT)
 
-    # ---- 飞书风格清爽头部 ----
-    def _draw_gradient_header(self) -> None:
-        c = self._header_canvas
-        w = c.winfo_width() or 1300
-        h = 88
-        c.delete("all")
-
-        # 纯白背景（飞书风格：干净清爽）
-        c.create_rectangle(0, 0, w, h, fill=Palette.FRAME_BG, outline="")
-        # 底部分隔线
-        c.create_line(0, h - 1, w, h - 1, fill=Palette.BORDER, width=1)
-
-        # 左侧标题文字
-        title_font = ("Microsoft YaHei UI", 18, "bold") if sys.platform == "win32" else ("Helvetica", 16, "bold")
-        c.create_text(24, 24, text="磁盘分析器", anchor="w",
-                       font=title_font, fill=Palette.HEADER_TEXT)
-        c.create_text(24, 52, text="快速定位大文件 · 智能清理建议", anchor="w",
-                       font=("", 10), fill=Palette.HEADER_SUBTITLE)
-
-        # 左侧磁盘使用率进度条（更醒目）
-        bar_x, bar_y, bar_w, bar_h = 24, 70, 200, 12
-        c.create_rectangle(bar_x, bar_y, bar_x + bar_w, bar_y + bar_h,
-                           fill=Palette.BORDER, outline="", width=0)
-        self._usage_bar_id = c.create_rectangle(
-            bar_x, bar_y, bar_x, bar_y + bar_h,
-            fill=Palette.METRIC_FREE, outline="", width=0
-        )
-        self._usage_text_id = c.create_text(
-            bar_x + bar_w + 8, bar_y + 6, text="--%",
-            anchor="w", font=("", 9, "bold"), fill=Palette.HEADER_SUBTITLE
-        )
-
-        # 右侧指标卡片（飞书风格：白色卡片 + 左侧彩色指示条）
-        self._metric_labels = {}
-        cards = [
-            ("total", "总容量", "--", Palette.METRIC_TOTAL),
-            ("used", "已使用", "--", Palette.METRIC_USED),
-            ("free", "可用", "--", Palette.METRIC_FREE),
-            ("scan", "扫描耗时", "--", Palette.METRIC_SCAN),
-        ]
-        # Responsive card sizing: shrink on narrow windows
-        available = w - 32  # left + right margin
-        card_gap = 8
-        card_w = min(140, (available - card_gap * 3) // 4)
-        card_w = max(90, card_w)  # minimum width
-        card_h = 58
-        total_cards_w = card_w * 4 + card_gap * 3
-        start_x = w - total_cards_w - 16
-        # Ensure cards don't overlap title (title area ~ 300px)
-        if start_x < 300:
-            start_x = 300
-            card_w = max(60, (w - 300 - 16 - card_gap * 3) // 4)
-            total_cards_w = card_w * 4 + card_gap * 3
-        font_size = 12 if card_w < 110 else 14
-        label_font_size = 8 if card_w < 110 else 9
-        for idx, (key, label, val, accent) in enumerate(cards):
-            x = start_x + idx * (card_w + card_gap)
-            y = 14
-            c.create_rectangle(x, y, x + card_w, y + card_h,
-                               fill=Palette.FRAME_BG, outline=Palette.BORDER, width=1)
-            c.create_rectangle(x, y, x + 4, y + card_h, fill=accent, outline="")
-            val_id = c.create_text(x + 14, y + 20, text=val, anchor="w",
-                                    font=("", font_size, "bold"), fill=Palette.HEADER_TEXT)
-            self._metric_labels[key] = val_id
-            c.create_text(x + 14, y + 42, text=label, anchor="w",
-                           font=("", label_font_size), fill=Palette.HEADER_SUBTITLE)
-
-    def _update_header_metrics(self, total: str = "", used: str = "", free: str = "", scan: str = "") -> None:
-        if not hasattr(self, '_metric_labels'):
+    # ---- 侧栏导航 ----
+    def _show_panel(self, name: str) -> None:
+        """切换到指定面板"""
+        if name not in self._panels:
             return
-        c = self._header_canvas
-        updates = {"total": total, "used": used, "free": free, "scan": scan}
-        for key, val in updates.items():
-            if val and key in self._metric_labels:
-                c.itemconfig(self._metric_labels[key], text=val)
+        for panel in self._panels.values():
+            panel.pack_forget()
+        self._panels[name].pack(fill=tk.BOTH, expand=True)
+        self._current_panel = name
+        # 更新导航按钮样式
+        for p, label in self._nav_labels.items():
+            if p == name:
+                label.configure(fg=Palette.SIDEBAR_ACTIVE, font=("", 10, "bold"))
+                self._nav_bars[p].delete("all")
+                self._nav_bars[p].create_rectangle(0, 6, 3, 26, fill=Palette.SIDEBAR_ACTIVE, outline="")
+                self._nav_buttons[p].configure(bg=Palette.SIDEBAR_HOVER)
+            else:
+                label.configure(fg=Palette.SIDEBAR_FG, font=("", 10))
+                self._nav_bars[p].delete("all")
+                self._nav_buttons[p].configure(bg=Palette.SIDEBAR_BG)
+        title = self.PANEL_TITLES.get(name, "")
+        if self._topbar_title:
+            self._topbar_title.configure(text=title)
+        subtitles = {
+            "overview": "快速了解磁盘空间使用情况",
+            "large_files": "查看和管理占用空间最大的文件",
+            "duplicates": "查找并清理重复文件，释放磁盘空间",
+            "temp_files": "清理临时文件、缓存和垃圾文件",
+            "ai_clean": "使用 AI 智能分析并推荐清理方案",
+            "history": "查看历史扫描记录和空间变化趋势",
+            "settings": "配置扫描参数和 LLM 分析选项",
+        }
+        if self._topbar_sub:
+            self._topbar_sub.configure(text=subtitles.get(name, ""))
+
+    def _nav_hover(self, panel_name: str, enter: bool) -> None:
+        if panel_name == self._current_panel:
+            return
+        if enter:
+            self._nav_buttons[panel_name].configure(bg=Palette.SIDEBAR_HOVER)
+            self._nav_labels[panel_name].configure(fg="#FFFFFF")
+        else:
+            self._nav_buttons[panel_name].configure(bg=Palette.SIDEBAR_BG)
+            self._nav_labels[panel_name].configure(fg=Palette.SIDEBAR_FG)
+
+    # ---- 面板：概览 ----
+    def _create_panel_overview(self) -> None:
+        panel = self._panels["overview"]
+        scroll = ScrollableFrame(panel)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
+        # 统计卡片行
+        cards_frame = ttk.Frame(inner, padding=(20, 16, 20, 8))
+        cards_frame.pack(fill=tk.X)
+        cards_frame.columnconfigure((0, 1, 2, 3), weight=1)
+        card_data = [
+            ("total", "总容量", "--", Palette.METRIC_TOTAL, "💾"),
+            ("used", "已使用", "--", Palette.METRIC_USED, "📀"),
+            ("free", "可用空间", "--", Palette.METRIC_FREE, "✅"),
+            ("cleanable", "可清理", "--", Palette.METRIC_SCAN, "🧹"),
+        ]
+        for i, (key, title, value, color, icon) in enumerate(card_data):
+            card = tk.Frame(cards_frame, bg=Palette.FRAME_BG, highlightbackground=Palette.BORDER,
+                            highlightthickness=1, padx=16, pady=12)
+            card.grid(row=0, column=i, padx=(0, 8), sticky="nsew")
+            color_bar = tk.Frame(card, bg=color, width=4)
+            color_bar.place(x=0, y=0, relheight=1, width=4)
+            tk.Label(card, text=icon, font=("", 18), bg=Palette.FRAME_BG).pack(anchor="w")
+            val_label = tk.Label(card, text=value, font=("", 20, "bold"), bg=Palette.FRAME_BG, fg=Palette.TEXT)
+            val_label.pack(anchor="w", pady=(4, 0))
+            self._stat_labels[key] = val_label
+            tk.Label(card, text=title, font=("", 9), bg=Palette.FRAME_BG, fg=Palette.TEXT_MUTED).pack(anchor="w")
+        # 中间行：环形图 + 健康度
+        middle_frame = ttk.Frame(inner, padding=(20, 8, 20, 8))
+        middle_frame.pack(fill=tk.X)
+        middle_frame.columnconfigure(0, weight=2)
+        middle_frame.columnconfigure(1, weight=1)
+        donut_card = tk.Frame(middle_frame, bg=Palette.FRAME_BG, highlightbackground=Palette.BORDER, highlightthickness=1)
+        donut_card.grid(row=0, column=0, padx=(0, 8), sticky="nsew")
+        tk.Label(donut_card, text="存储空间分布", font=("", 11, "bold"), bg=Palette.FRAME_BG, fg=Palette.TEXT).pack(anchor="w", padx=16, pady=(12, 4))
+        self._donut_canvas = tk.Canvas(donut_card, width=320, height=200, bg=Palette.FRAME_BG, highlightthickness=0, bd=0)
+        self._donut_canvas.pack(padx=16, pady=(0, 12))
+        health_card = tk.Frame(middle_frame, bg=Palette.FRAME_BG, highlightbackground=Palette.BORDER, highlightthickness=1)
+        health_card.grid(row=0, column=1, sticky="nsew")
+        tk.Label(health_card, text="存储健康度", font=("", 11, "bold"), bg=Palette.FRAME_BG, fg=Palette.TEXT).pack(anchor="w", padx=16, pady=(12, 8))
+        for key, label, color in [("disk_usage", "磁盘使用率", Palette.PRIMARY), ("cleanable", "可清理空间", Palette.WARNING), ("dup_ratio", "重复文件", Palette.DANGER)]:
+            row = tk.Frame(health_card, bg=Palette.FRAME_BG)
+            row.pack(fill=tk.X, padx=16, pady=4)
+            tk.Label(row, text=label, font=("", 9), bg=Palette.FRAME_BG, fg=Palette.TEXT_MUTED).pack(anchor="w")
+            bar_canvas = tk.Canvas(row, height=8, bg=Palette.TROUGH, highlightthickness=0, bd=0)
+            bar_canvas.pack(fill=tk.X, pady=(2, 0))
+            self._health_bars[key] = bar_canvas
+        # 最大目录表格
+        dirs_card = tk.Frame(inner, bg=Palette.FRAME_BG, highlightbackground=Palette.BORDER, highlightthickness=1)
+        dirs_card.pack(fill=tk.BOTH, expand=True, padx=20, pady=(8, 16))
+        header_row = tk.Frame(dirs_card, bg=Palette.FRAME_BG)
+        header_row.pack(fill=tk.X, padx=16, pady=(12, 4))
+        tk.Label(header_row, text="最大目录 TOP N", font=("", 11, "bold"), bg=Palette.FRAME_BG, fg=Palette.TEXT).pack(side=tk.LEFT)
+        self.tree_top_dirs = self._create_treeview(dirs_card, [("size", "大小", 120), ("path", "目录路径", 500)], padx=8, pady=(0, 8))
+        self.tree_top_dirs.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_top_dirs, event=e))
+        self._add_filter(dirs_card, self.tree_top_dirs)
+
+    # ---- 面板：大文件 ----
+    def _create_panel_large_files(self) -> None:
+        panel = self._panels["large_files"]
+        header = ttk.Frame(panel, padding=(20, 16, 20, 8))
+        header.pack(fill=tk.X)
+        self._large_files_info = ttk.Label(header, text="等待扫描...", font=("", 10), foreground=Palette.TEXT_MUTED)
+        self._large_files_info.pack(side=tk.LEFT)
+        self.tree_large_files = self._create_treeview(panel, [("size", "大小", 100), ("type", "类型", 80), ("mtime", "修改时间", 140), ("path", "文件路径", 500)], padx=20, pady=(0, 0))
+        self.tree_large_files.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_large_files, True, event=e))
+        self._add_filter(panel, self.tree_large_files)
+        btn_frame = ttk.Frame(panel, padding=(20, 8, 20, 12))
+        btn_frame.pack(fill=tk.X)
+        ttk.Button(btn_frame, text="打开所在文件夹", command=lambda: self._open_tree_path(self.tree_large_files, True)).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(btn_frame, text="复制路径", command=lambda: self._copy_path(self.tree_large_files)).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(btn_frame, text="移至回收站", command=lambda: self._delete_selected_file(True)).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(btn_frame, text="导出", command=self.export_report).pack(side=tk.RIGHT)
+
+    # ---- 面板：重复文件 ----
+    def _create_panel_duplicates(self) -> None:
+        panel = self._panels["duplicates"]
+        header = ttk.Frame(panel, padding=(20, 16, 20, 8))
+        header.pack(fill=tk.X)
+        self.dup_summary = ttk.Label(header, text="扫描后显示重复文件", font=("", 10), foreground=Palette.TEXT_MUTED)
+        self.dup_summary.pack(side=tk.LEFT)
+        self.tree_dup = self._create_treeview(panel, [("size", "单个大小", 100), ("count", "副本数", 80), ("waste", "浪费空间", 120), ("path", "文件路径", 500)], padx=20, pady=(0, 0))
+        self.tree_dup.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_dup, event=e))
+        self._add_filter(panel, self.tree_dup)
+        btn_frame = ttk.Frame(panel, padding=(20, 8, 20, 12))
+        btn_frame.pack(fill=tk.X)
+        ttk.Button(btn_frame, text="打开所在文件夹", command=lambda: self._open_tree_path(self.tree_dup, True)).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(btn_frame, text="移至回收站", command=lambda: self._delete_selected_dup(True)).pack(side=tk.LEFT, padx=(0, 8))
+
+    # ---- 面板：临时文件 ----
+    def _create_panel_temp_files(self) -> None:
+        panel = self._panels["temp_files"]
+        header = ttk.Frame(panel, padding=(20, 16, 20, 8))
+        header.pack(fill=tk.X)
+        self._temp_files_info = ttk.Label(header, text="扫描后显示可清理的临时文件", font=("", 10), foreground=Palette.TEXT_MUTED)
+        self._temp_files_info.pack(side=tk.LEFT)
+        self.tree_junk = self._create_treeview(panel, [("size", "大小", 120), ("path", "路径", 600)], padx=20, pady=(0, 0))
+        self._add_filter(panel, self.tree_junk)
+        self.tree_junk.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_junk, event=e))
+        btn_frame = ttk.Frame(panel, padding=(20, 8, 20, 12))
+        btn_frame.pack(fill=tk.X)
+        ttk.Button(btn_frame, text="打开位置", command=self._open_selected_junk).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(btn_frame, text="移至回收站", command=self._delete_selected_junk).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(btn_frame, text="永久删除", command=self._permanently_delete_junk, style="Danger.TButton").pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Label(btn_frame, text="开启 [模拟预览] 可安全测试", foreground=Palette.DANGER).pack(side=tk.LEFT, padx=15)
+
+    # ---- 面板：智能清理 (AI) ----
+    def _create_panel_ai_clean(self) -> None:
+        panel = self._panels["ai_clean"]
+        toolbar = ttk.Frame(panel, padding=(20, 12, 20, 4))
+        toolbar.pack(fill=tk.X)
+        self._llm_btn = ttk.Button(toolbar, text="  🤖 开始 AI 分析  ", style="Accent.TButton", command=self._start_llm_analysis)
+        self._llm_btn.pack(side=tk.LEFT, padx=(0, 8))
+        self._llm_stop_btn = ttk.Button(toolbar, text="⏹ 停止", command=self._cancel_llm_analysis, state=tk.DISABLED)
+        self._llm_stop_btn.pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(toolbar, text="清空", command=self._clear_llm_output).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(toolbar, text="复制结果", command=self._copy_llm_output).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(toolbar, text="导出 Markdown", command=self._export_llm_markdown).pack(side=tk.LEFT, padx=(0, 8))
+        self._llm_status = ttk.Label(toolbar, text="", foreground=Palette.TEXT_MUTED, font=("", 9))
+        self._llm_status.pack(side=tk.LEFT, padx=(8, 0))
+        output_frame = ttk.Frame(panel, padding=(20, 4, 20, 12))
+        output_frame.pack(fill=tk.BOTH, expand=True)
+        self._llm_text = tk.Text(output_frame, font=("", 10), bg=Palette.FRAME_BG, fg=Palette.TEXT, insertbackground=Palette.TEXT, wrap=tk.WORD, padx=12, pady=10, spacing1=2, spacing3=2, state=tk.DISABLED)
+        llm_scroll = ttk.Scrollbar(output_frame, orient=tk.VERTICAL, command=self._llm_text.yview, style="Vertical.TScrollbar")
+        self._llm_text.configure(yscrollcommand=llm_scroll.set)
+        self._llm_text.grid(row=0, column=0, sticky="nsew")
+        llm_scroll.grid(row=0, column=1, sticky="ns")
+        output_frame.rowconfigure(0, weight=1)
+        output_frame.columnconfigure(0, weight=1)
+        self._llm_text.tag_configure("h1", font=("", 14, "bold"), foreground=Palette.PRIMARY)
+        self._llm_text.tag_configure("h2", font=("", 12, "bold"), foreground=Palette.PRIMARY)
+        self._llm_text.tag_configure("h3", font=("", 11, "bold"), foreground=Palette.TEXT)
+        self._llm_text.tag_configure("bold", font=("", 10, "bold"))
+        self._llm_text.tag_configure("emoji", font=("", 11))
+        self._llm_text.tag_configure("dim", foreground=Palette.TEXT_MUTED)
+        self._llm_text.config(state=tk.NORMAL)
+        self._llm_text.insert(tk.END, "等待扫描完成后，点击上方「🤖 开始 AI 分析」按钮。\n\nAI 将分析扫描结果，告诉你：\n  • 哪些目录/文件占用了大量空间\n  • 它们是什么、为什么大\n  • 哪些可以安全清理\n  • 具体的清理操作建议\n\n请先在「设置 → LLM 配置」中设置 API 地址和模型。", "dim")
+        self._llm_text.config(state=tk.DISABLED)
+
+    # ---- 面板：历史记录 ----
+    def _create_panel_history(self) -> None:
+        panel = self._panels["history"]
+        scroll = ScrollableFrame(panel)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
+        cards_frame = ttk.Frame(inner, padding=(20, 16, 20, 8))
+        cards_frame.pack(fill=tk.X)
+        cards_frame.columnconfigure((0, 1, 2), weight=1)
+        for i, (title, value, color) in enumerate([("累计释放空间", "--", Palette.SUCCESS), ("平均每次释放", "--", Palette.PRIMARY), ("扫描次数", "0", Palette.WARNING)]):
+            card = tk.Frame(cards_frame, bg=Palette.FRAME_BG, highlightbackground=Palette.BORDER, highlightthickness=1, padx=16, pady=12)
+            card.grid(row=0, column=i, padx=(0, 8), sticky="nsew")
+            tk.Frame(card, bg=color, width=4).place(x=0, y=0, relheight=1, width=4)
+            tk.Label(card, text=title, font=("", 9), bg=Palette.FRAME_BG, fg=Palette.TEXT_MUTED).pack(anchor="w")
+            tk.Label(card, text=value, font=("", 18, "bold"), bg=Palette.FRAME_BG, fg=Palette.TEXT).pack(anchor="w", pady=(4, 0))
+        timeline_header = ttk.Frame(inner, padding=(20, 12, 20, 4))
+        timeline_header.pack(fill=tk.X)
+        tk.Label(timeline_header, text="操作时间线", font=("", 11, "bold"), bg=Palette.BG, fg=Palette.TEXT).pack(anchor="w")
+        self._history_container = ttk.Frame(inner, padding=(20, 4, 20, 16))
+        self._history_container.pack(fill=tk.BOTH, expand=True)
+        ttk.Label(self._history_container, text="扫描完成后将自动记录历史", font=("", 10), foreground=Palette.TEXT_MUTED).pack(pady=20)
+
+    # ---- 面板：设置 ----
+    def _create_panel_settings(self) -> None:
+        panel = self._panels["settings"]
+        scroll = ScrollableFrame(panel)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
+        center = ttk.Frame(inner, padding=(40, 20, 40, 20))
+        center.pack(anchor="center")
+        self._add_settings_section(center, "通用设置", [
+            ("深色模式", "切换深色/浅色主题", "toggle", self._theme_name == "dark",
+             lambda v: self._toggle_theme() if v != (self._theme_name == "dark") else None),
+        ])
+        self._add_settings_section(center, "扫描设置", [
+            ("大文件阈值 (Top N)", "显示占用最大的 N 个文件/目录", "spinbox", self.config.top_n, {"from_": 5, "to": 100}),
+            ("检测重复文件", "扫描时检测重复的大文件 (需要 xxhash)", "toggle", self.enable_dup_var.get(), lambda v: self.enable_dup_var.set(v)),
+            ("模拟预览模式", "开启后删除操作将只显示预览，不真实执行", "toggle", self.simulate_mode_var.get(), lambda v: self.simulate_mode_var.set(v)),
+        ])
+        self._add_settings_section(center, "LLM 配置", [
+            ("API 地址", "OpenAI 兼容的 API 端点", "entry", self.config.llm_api_url, lambda v: setattr(self.config, 'llm_api_url', v)),
+            ("API Key", "API 认证密钥（本地模型可留空）", "password", self.config.llm_api_key, lambda v: setattr(self.config, 'llm_api_key', v)),
+            ("模型名称", "使用的模型标识符", "entry", self.config.llm_model, lambda v: setattr(self.config, 'llm_model', v)),
+        ])
+        test_frame = ttk.Frame(center)
+        test_frame.pack(fill=tk.X, pady=(0, 16))
+        ttk.Button(test_frame, text="测试 LLM 连接", command=self._test_llm_connection).pack(side=tk.LEFT)
+        ttk.Button(test_frame, text="保存配置", command=self.config.save, style="Accent.TButton").pack(side=tk.LEFT, padx=(8, 0))
+        self._add_settings_section(center, "关于", [
+            ("版本", "磁盘空间分析工具 v2.0", "label", "", None),
+            ("Python", sys.version.split()[0], "label", "", None),
+            ("xxhash", "已安装" if HAS_XXHASH else "未安装", "label", "", None),
+            ("send2trash", "已安装" if HAS_SEND2TRASH else "未安装", "label", "", None),
+        ])
+
+    def _add_settings_section(self, parent: tk.Widget, title: str, items: List[Tuple[str, str, str, Any, Optional[Callable]]]) -> None:
+        section = tk.Frame(parent, bg=Palette.FRAME_BG, highlightbackground=Palette.BORDER, highlightthickness=1)
+        section.pack(fill=tk.X, pady=(0, 12))
+        tk.Label(section, text=title, font=("", 11, "bold"), bg=Palette.FRAME_BG, fg=Palette.TEXT).pack(anchor="w", padx=16, pady=(12, 8))
+        for i, (label, desc, widget_type, value, callback) in enumerate(items):
+            row = tk.Frame(section, bg=Palette.FRAME_BG)
+            row.pack(fill=tk.X, padx=16, pady=4)
+            if i > 0:
+                tk.Frame(row, bg=Palette.BORDER, height=1).pack(fill=tk.X, pady=(0, 4))
+            left = tk.Frame(row, bg=Palette.FRAME_BG)
+            left.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            tk.Label(left, text=label, font=("", 10), bg=Palette.FRAME_BG, fg=Palette.TEXT).pack(anchor="w")
+            if desc:
+                tk.Label(left, text=desc, font=("", 8), bg=Palette.FRAME_BG, fg=Palette.TEXT_MUTED).pack(anchor="w")
+            right = tk.Frame(row, bg=Palette.FRAME_BG)
+            right.pack(side=tk.RIGHT, padx=(16, 0))
+            if widget_type == "toggle":
+                var = tk.BooleanVar(value=value)
+                ToggleSwitch(right, var, command=lambda cb=callback, v=var: cb(v.get()) if cb else None).pack()
+            elif widget_type in ("entry", "password"):
+                var = tk.StringVar(value=value or "")
+                entry = ttk.Entry(right, textvariable=var, width=30, show="•" if widget_type == "password" else "")
+                entry.pack()
+                if callback:
+                    entry.bind("<FocusOut>", lambda e, cb=callback, v=var: cb(v.get()))
+            elif widget_type == "spinbox":
+                var = tk.IntVar(value=value)
+                ttk.Spinbox(right, from_=5, to=100, width=6, textvariable=var).pack()
+            elif widget_type == "label":
+                tk.Label(right, text=str(value), font=("", 10), bg=Palette.FRAME_BG, fg=Palette.TEXT_MUTED).pack(anchor="e")
+        tk.Frame(section, height=8, bg=Palette.FRAME_BG).pack()
+
+    def _test_llm_connection(self) -> None:
+        if not self.config.llm_api_url or not self.config.llm_model:
+            messagebox.showwarning("提示", "请先填写 API 地址和模型名称")
+            return
+        if not HAS_REQUESTS:
+            messagebox.showerror("错误", "缺少 requests 库: pip install requests")
+            return
+        try:
+            test_url = self.config.llm_api_url.rstrip("/")
+            if not test_url.endswith("/models"):
+                test_url += "/models"
+            headers: Dict[str, str] = {}
+            if self.config.llm_api_key:
+                headers["Authorization"] = f"Bearer {self.config.llm_api_key}"
+            resp = _requests.get(test_url, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                messagebox.showinfo("连接成功", "API 连接正常！")
+            else:
+                messagebox.showwarning("连接异常", f"HTTP {resp.status_code}\n{resp.text[:300]}")
+        except Exception as e:
+            messagebox.showerror("连接失败", str(e))
 
     def _create_treeview(
         self,
@@ -1656,216 +2158,10 @@ class DiskAnalyzerApp:
         return any_child_match
 
     def _create_main_tab(self) -> None:
-        paned: ttk.PanedWindow = ttk.PanedWindow(self.tab_main, orient=tk.HORIZONTAL)
-        paned.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+        """保留兼容：旧方法已移至 _create_panel_overview / _create_panel_large_files"""
+        pass
 
-        left_frame: ttk.LabelFrame = ttk.LabelFrame(
-            paned, text=" 占用最大目录 (包含子目录) ", padding=5
-        )
-        paned.add(left_frame, weight=1)
-        self.tree_dirs = self._create_treeview(
-            left_frame,
-            [("size", "大小", 100), ("path", "目录路径 (可清理/压缩)", 400)],
-        )
-        self.tree_dirs.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_dirs, event=e))
-        self._add_filter(left_frame, self.tree_dirs)
-
-        right_frame: ttk.LabelFrame = ttk.LabelFrame(paned, text=" 占用最大文件 ", padding=5)
-        paned.add(right_frame, weight=2)
-        self.tree_files = self._create_treeview(
-            right_frame,
-            [
-                ("size", "大小", 100),
-                ("mtime", "修改时间", 140),
-                ("path", "文件路径", 400),
-            ],
-        )
-        self.tree_files.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_files, True, event=e))
-        self._add_filter(right_frame, self.tree_files)
-
-        # Empty state overlay
-        self._empty_overlay = ttk.Label(
-            self.tab_main,
-            text="📁  选择路径后按 F5 开始扫描磁盘空间\n\n"
-                 "支持扫描本地磁盘、外接硬盘、网络驱动器等\n"
-                 "扫描结果将显示占用最大的目录和文件",
-            font=("", 12),
-            foreground=Palette.TEXT_MUTED,
-            justify=tk.CENTER,
-        )
-        self._empty_overlay.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-
-    def _create_junk_tab(self) -> None:
-        self.tree_junk = self._create_treeview(
-            self.tab_junk,
-            [("size", "大小", 120), ("path", "路径", 600)],
-            padx=8,
-            pady=(8, 0),
-        )
-        # P1: 垃圾目录过滤
-        self._add_filter(self.tab_junk, self.tree_junk)
-        self.tree_junk.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_junk, event=e))
-        btn_frame: ttk.Frame = ttk.Frame(self.tab_junk)
-        btn_frame.pack(fill=tk.X, pady=8, padx=8)
-        ttk.Button(btn_frame, text="打开位置", command=self._open_selected_junk).pack(
-            side=tk.LEFT, padx=(0, 8)
-        )
-        ttk.Button(btn_frame, text="移至回收站", command=self._delete_selected_junk).pack(
-            side=tk.LEFT, padx=(0, 8)
-        )
-        ttk.Button(
-            btn_frame,
-            text="永久删除",
-            command=self._permanently_delete_junk,
-            style="Danger.TButton",
-        ).pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Label(
-            btn_frame,
-            text="开启顶部 [模拟预览] 可安全测试删除结果",
-            foreground=Palette.DANGER,
-        ).pack(side=tk.LEFT, padx=15)
-
-    def _create_filetree_tab(self) -> None:
-        assert self.tab_filetree is not None
-        self.tree_filetree = self._create_treeview(
-            self.tab_filetree,
-            [("size", "大小", 120), ("path", "路径", 600)],
-            show_headings=False,
-            padx=8,
-            pady=8,
-        )
-        assert self.tree_filetree is not None
-        self.tree_filetree.heading("size", text="大小")
-        self.tree_filetree.heading("path", text="路径")
-        self.tree_filetree.heading("#0", text="目录树")
-        self.tree_filetree.column("#0", width=250, anchor="w")
-        self.tree_filetree.bind("<<TreeviewOpen>>", self._on_filetree_expand)
-        # 目录树单独绑双击：用 identify_row 精确定位，避免 selection() 取错节点
-        self.tree_filetree.bind("<Double-1>", self._on_filetree_double_click)
-        # P2: 目录树过滤
-        self._add_filter(self.tab_filetree, self.tree_filetree)
-
-    def _create_age_tab(self) -> None:
-        assert self.tab_age is not None
-        self.tree_age = self._create_treeview(
-            self.tab_age,
-            [
-                ("age", "时间段", 200),
-                ("count", "文件数", 150),
-                ("size", "总大小", 200),
-            ],
-            padx=8,
-            pady=8,
-        )
-
-    def _create_dup_tab(self) -> None:
-        """P3: 重复文件检测 Tab"""
-        assert self.tab_dup is not None
-        # 统计行
-        self.dup_summary = ttk.Label(
-            self.tab_dup, text="扫描后显示重复文件", font=("", 10), foreground=Palette.TEXT_MUTED
-        )
-        self.dup_summary.pack(fill=tk.X, padx=8, pady=(8, 4))
-
-        self.tree_dup = self._create_treeview(
-            self.tab_dup,
-            [
-                ("size", "单个大小", 100),
-                ("count", "副本数", 80),
-                ("waste", "浪费空间", 120),
-                ("path", "文件路径", 500),
-            ],
-            padx=8, pady=(0, 0),
-        )
-        self.tree_dup.bind("<Double-1>", lambda e: self._open_tree_path(self.tree_dup, event=e))
-        # P3: 重复文件过滤
-        self._add_filter(self.tab_dup, self.tree_dup)
-
-    def _create_llm_tab(self) -> None:
-        """LLM 智能分析 Tab"""
-        assert self.tab_llm is not None
-
-        # 顶部工具栏
-        toolbar = ttk.Frame(self.tab_llm, padding=(8, 8, 8, 4))
-        toolbar.pack(fill=tk.X)
-
-        self._llm_btn = ttk.Button(
-            toolbar, text="  🤖 开始 AI 分析  ", style="Accent.TButton",
-            command=self._start_llm_analysis,
-        )
-        self._llm_btn.pack(side=tk.LEFT, padx=(0, 8))
-
-        self._llm_stop_btn = ttk.Button(
-            toolbar, text="⏹ 停止", command=self._cancel_llm_analysis, state=tk.DISABLED,
-        )
-        self._llm_stop_btn.pack(side=tk.LEFT, padx=(0, 8))
-
-        ttk.Button(
-            toolbar, text="清空", command=self._clear_llm_output
-        ).pack(side=tk.LEFT, padx=(0, 8))
-
-        ttk.Button(
-            toolbar, text="复制结果", command=self._copy_llm_output
-        ).pack(side=tk.LEFT, padx=(0, 8))
-
-        ttk.Button(
-            toolbar, text="导出 Markdown", command=self._export_llm_markdown
-        ).pack(side=tk.LEFT, padx=(0, 8))
-
-        self._llm_status = ttk.Label(
-            toolbar, text="", foreground=Palette.TEXT_MUTED, font=("", 9)
-        )
-        self._llm_status.pack(side=tk.LEFT, padx=(8, 0))
-
-        # LLM 输出区域
-        output_frame = ttk.Frame(self.tab_llm)
-        output_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
-
-        self._llm_text = tk.Text(
-            output_frame,
-            font=("", 10),
-            bg=Palette.FRAME_BG,
-            fg=Palette.TEXT,
-            insertbackground=Palette.TEXT,
-            wrap=tk.WORD,
-            padx=12,
-            pady=10,
-            spacing1=2,
-            spacing3=2,
-            state=tk.DISABLED,
-        )
-        llm_scroll = ttk.Scrollbar(
-            output_frame, orient=tk.VERTICAL, command=self._llm_text.yview,
-            style="Vertical.TScrollbar",
-        )
-        self._llm_text.configure(yscrollcommand=llm_scroll.set)
-        self._llm_text.grid(row=0, column=0, sticky="nsew")
-        llm_scroll.grid(row=0, column=1, sticky="ns")
-        output_frame.rowconfigure(0, weight=1)
-        output_frame.columnconfigure(0, weight=1)
-
-        # 配置 Markdown-like 标签样式
-        self._llm_text.tag_configure("h1", font=("", 14, "bold"), foreground=Palette.PRIMARY)
-        self._llm_text.tag_configure("h2", font=("", 12, "bold"), foreground=Palette.PRIMARY)
-        self._llm_text.tag_configure("h3", font=("", 11, "bold"), foreground=Palette.TEXT)
-        self._llm_text.tag_configure("bold", font=("", 10, "bold"))
-        self._llm_text.tag_configure("emoji", font=("", 11))
-        self._llm_text.tag_configure("dim", foreground=Palette.TEXT_MUTED)
-
-        # 默认提示
-        self._llm_text.config(state=tk.NORMAL)
-        self._llm_text.insert(
-            tk.END,
-            "等待扫描完成后，点击上方「🤖 开始 AI 分析」按钮。\n\n"
-            "AI 将分析扫描结果，告诉你：\n"
-            "  • 哪些目录/文件占用了大量空间\n"
-            "  • 它们是什么、为什么大\n"
-            "  • 哪些可以安全清理\n"
-            "  • 具体的清理操作建议\n\n"
-            "请先在「配置 → LLM 分析」中设置 API 地址和模型。",
-            "dim",
-        )
-        self._llm_text.config(state=tk.DISABLED)
+    # 旧 tab 创建方法已移至 _create_panel_* 系列方法
 
     def _start_llm_analysis(self) -> None:
         """触发 LLM 分析"""
@@ -1880,6 +2176,7 @@ class DiskAnalyzerApp:
             return
 
         self._llm_streaming = True
+        self._llm_line_buffer = ""  # BUG FIX: 重置行缓冲区
         if self._llm_btn:
             self._llm_btn.config(state=tk.DISABLED, text="  ⏳ 分析中...  ")
         if hasattr(self, '_llm_stop_btn') and self._llm_stop_btn:
@@ -1892,9 +2189,8 @@ class DiskAnalyzerApp:
             self._llm_text.insert(tk.END, "正在分析扫描结果，请稍候...\n\n", "dim")
             self._llm_text.config(state=tk.DISABLED)
 
-        # 切换到 LLM tab
-        if self.notebook and self.tab_llm:
-            self.notebook.select(self.tab_llm)
+        # 切换到 AI 面板
+        self._show_panel("ai_clean")
 
         self._llm_analyzer = LLMAnalyzer(self.config)
         self._llm_analyzer.analyze(
@@ -1908,23 +2204,40 @@ class DiskAnalyzerApp:
         self.root.after(0, self._append_llm_token, token)
 
     def _append_llm_token(self, token: str) -> None:
-        """在主线程中追加 token 到输出区"""
+        """在主线程中追加 token 到输出区（逐行缓冲，正确处理多行 token 和跨 token 标题）"""
         if not self._llm_text:
             return
+        self._llm_line_buffer += token
         self._llm_text.config(state=tk.NORMAL)
 
-        # 简单 Markdown 渲染
-        if token.startswith("## "):
-            self._llm_text.insert(tk.END, token[3:], "h2")
-        elif token.startswith("### "):
-            self._llm_text.insert(tk.END, token[4:], "h3")
-        elif token.startswith("# "):
-            self._llm_text.insert(tk.END, token[2:], "h1")
-        else:
-            self._llm_text.insert(tk.END, token)
+        # �行处理：保留最后一个不完整的行在缓冲区中
+        while "\n" in self._llm_line_buffer:
+            line, self._llm_line_buffer = self._llm_line_buffer.split("\n", 1)
+            self._insert_llm_line(line + "\n")
 
         self._llm_text.see(tk.END)
         self._llm_text.config(state=tk.DISABLED)
+
+    def _flush_llm_buffer(self) -> None:
+        """刷新 LLM 行缓冲区中剩余内容（流结束时调用）"""
+        if not self._llm_text or not self._llm_line_buffer:
+            return
+        self._llm_text.config(state=tk.NORMAL)
+        self._insert_llm_line(self._llm_line_buffer)
+        self._llm_line_buffer = ""
+        self._llm_text.see(tk.END)
+        self._llm_text.config(state=tk.DISABLED)
+
+    def _insert_llm_line(self, line: str) -> None:
+        """将一行文本插入 LLM 输出区，应用 Markdown 格式"""
+        if line.startswith("### "):
+            self._llm_text.insert(tk.END, line[4:], "h3")
+        elif line.startswith("## "):
+            self._llm_text.insert(tk.END, line[3:], "h2")
+        elif line.startswith("# "):
+            self._llm_text.insert(tk.END, line[2:], "h1")
+        else:
+            self._llm_text.insert(tk.END, line)
 
     def _on_llm_done(self, full_text: Optional[str], error: Optional[str]) -> None:
         """LLM 分析完成回调（后台线程调用）"""
@@ -1933,6 +2246,7 @@ class DiskAnalyzerApp:
     def _finish_llm_analysis(self, full_text: Optional[str], error: Optional[str]) -> None:
         """在主线程中处理分析完成"""
         self._llm_streaming = False
+        self._llm_line_buffer = ""  # BUG FIX: 清空缓冲区（最终渲染用 full_text）
         if self._llm_btn:
             self._llm_btn.config(state=tk.NORMAL, text="  🤖 重新分析  ")
         if hasattr(self, '_llm_stop_btn') and self._llm_stop_btn:
@@ -2052,107 +2366,37 @@ class DiskAnalyzerApp:
                 tree.selection_set(iid)
                 menu.tk_popup(event.x_root, event.y_root)
 
-        # 目录
-        dir_menu: tk.Menu = tk.Menu(self.root, tearoff=0, font=("", 9), **menu_kw)
-        self._context_menus.append(dir_menu)
-        dir_menu.add_command(
-            label="打开文件夹",
-            command=functools.partial(self._open_tree_path, self.tree_dirs),
-        )
-        dir_menu.add_command(
-            label="复制路径",
-            command=functools.partial(self._copy_path, self.tree_dirs),
-        )
-        dir_menu.add_separator()
-        dir_menu.add_command(label="继续扫描此目录", command=self._continue_scan_dir)
-        assert self.tree_dirs is not None
-        self.tree_dirs.bind(
-            "<Button-3>",
-            functools.partial(popup, tree=self.tree_dirs, menu=dir_menu),
-        )
+        # 概览面板：目录右键菜单
+        if self.tree_top_dirs:
+            dir_menu: tk.Menu = tk.Menu(self.root, tearoff=0, font=("", 9), **menu_kw)
+            self._context_menus.append(dir_menu)
+            dir_menu.add_command(label="打开文件夹", command=functools.partial(self._open_tree_path, self.tree_top_dirs))
+            dir_menu.add_command(label="复制路径", command=functools.partial(self._copy_path, self.tree_top_dirs))
+            dir_menu.add_separator()
+            dir_menu.add_command(label="继续扫描此目录", command=self._continue_scan_dir)
+            self.tree_top_dirs.bind("<Button-3>", functools.partial(popup, tree=self.tree_top_dirs, menu=dir_menu))
 
-        # 文件
-        file_menu: tk.Menu = tk.Menu(self.root, tearoff=0, font=("", 9), **menu_kw)
-        self._context_menus.append(file_menu)
-        file_menu.add_command(
-            label="打开所在文件夹",
-            command=functools.partial(self._open_tree_path, self.tree_files, True),
-        )
-        file_menu.add_command(
-            label="复制文件路径",
-            command=functools.partial(self._copy_path, self.tree_files),
-        )
-        file_menu.add_separator()
-        file_menu.add_command(
-            label="移至回收站",
-            command=functools.partial(self._delete_selected_file, True),
-        )
-        file_menu.add_command(
-            label="永久删除",
-            command=functools.partial(self._delete_selected_file, False),
-        )
-        assert self.tree_files is not None
-        self.tree_files.bind(
-            "<Button-3>",
-            functools.partial(popup, tree=self.tree_files, menu=file_menu),
-        )
+        # 大文件面板：文件右键菜单
+        if self.tree_large_files:
+            file_menu: tk.Menu = tk.Menu(self.root, tearoff=0, font=("", 9), **menu_kw)
+            self._context_menus.append(file_menu)
+            file_menu.add_command(label="打开所在文件夹", command=functools.partial(self._open_tree_path, self.tree_large_files, True))
+            file_menu.add_command(label="复制文件路径", command=functools.partial(self._copy_path, self.tree_large_files))
+            file_menu.add_separator()
+            file_menu.add_command(label="移至回收站", command=functools.partial(self._delete_selected_file, True))
+            file_menu.add_command(label="永久删除", command=functools.partial(self._delete_selected_file, False))
+            self.tree_large_files.bind("<Button-3>", functools.partial(popup, tree=self.tree_large_files, menu=file_menu))
 
-        # 重复文件
-        dup_menu: tk.Menu = tk.Menu(self.root, tearoff=0, font=("", 9), **menu_kw)
-        self._context_menus.append(dup_menu)
-        dup_menu.add_command(
-            label="打开所在文件夹",
-            command=functools.partial(self._open_tree_path, self.tree_dup, True),
-        )
-        dup_menu.add_command(
-            label="复制文件路径",
-            command=functools.partial(self._copy_path, self.tree_dup),
-        )
-        dup_menu.add_separator()
-        dup_menu.add_command(
-            label="移至回收站",
-            command=functools.partial(self._delete_selected_dup, True),
-        )
-        dup_menu.add_command(
-            label="永久删除",
-            command=functools.partial(self._delete_selected_dup, False),
-        )
-        assert self.tree_dup is not None
-        self.tree_dup.bind(
-            "<Button-3>",
-            functools.partial(popup, tree=self.tree_dup, menu=dup_menu),
-        )
-
-        # 目录树 — 右键菜单与大文件一致
-        ft_menu: tk.Menu = tk.Menu(self.root, tearoff=0, font=("", 9), **menu_kw)
-        self._context_menus.append(ft_menu)
-        ft_menu.add_command(
-            label="📂 打开",
-            command=functools.partial(self._filetree_open),
-        )
-        ft_menu.add_command(
-            label="📋 复制路径",
-            command=functools.partial(self._copy_path, self.tree_filetree),
-        )
-        ft_menu.add_separator()
-        ft_menu.add_command(
-            label="🔍 继续扫描此目录",
-            command=self._filetree_continue_scan,
-        )
-        ft_menu.add_separator()
-        ft_menu.add_command(
-            label="🗑️ 移至回收站",
-            command=functools.partial(self._filetree_delete, recycle=True),
-        )
-        ft_menu.add_command(
-            label="⚠️ 永久删除",
-            command=functools.partial(self._filetree_delete, recycle=False),
-        )
-        assert self.tree_filetree is not None
-        self.tree_filetree.bind(
-            "<Button-3>",
-            functools.partial(popup, tree=self.tree_filetree, menu=ft_menu),
-        )
+        # 重复文件面板
+        if self.tree_dup:
+            dup_menu: tk.Menu = tk.Menu(self.root, tearoff=0, font=("", 9), **menu_kw)
+            self._context_menus.append(dup_menu)
+            dup_menu.add_command(label="打开所在文件夹", command=functools.partial(self._open_tree_path, self.tree_dup, True))
+            dup_menu.add_command(label="复制文件路径", command=functools.partial(self._copy_path, self.tree_dup))
+            dup_menu.add_separator()
+            dup_menu.add_command(label="移至回收站", command=functools.partial(self._delete_selected_dup, True))
+            dup_menu.add_command(label="永久删除", command=functools.partial(self._delete_selected_dup, False))
+            self.tree_dup.bind("<Button-3>", functools.partial(popup, tree=self.tree_dup, menu=dup_menu))
 
     def _bind_events(self) -> None:
         pass  # Events are bound in __init__ and _create_widgets
@@ -2182,24 +2426,16 @@ class DiskAnalyzerApp:
                 self._dir_size_cache = cached.dir_size_cache
                 self._loaded_cache = True
                 self._populate_trees(cached)
-                self._populate_filetree(self.path_var.get())
 
-    def _on_tab_changed(self, event: tk.Event) -> None:
-        """Show hint in status bar when switching to an empty tab"""
+    def _on_panel_changed(self) -> None:
         if self._last_scan_result:
-            return  # Already have data
+            return
         if self.status_label:
             self.status_label.config(text="提示: 请先按 F5 或点击「开始扫描」分析磁盘空间")
 
-    def _select_tab(self, index: int) -> None:
-        """Switch to tab by index (0-based), bound to Ctrl+1~7"""
-        if self.notebook:
-            try:
-                tabs = self.notebook.tabs()
-                if 0 <= index < len(tabs):
-                    self.notebook.select(index)
-            except tk.TclError:
-                pass
+    def _select_panel(self, name: str) -> None:
+        if name in self.PANEL_NAMES:
+            self._show_panel(name)
 
     def _toggle_theme(self) -> None:
         self._theme_name = "dark" if self._theme_name == "light" else "light"
@@ -2209,310 +2445,51 @@ class DiskAnalyzerApp:
             self.status_label.configure(foreground=Palette.TEXT_MUTED)
         if self.theme_btn:
             self.theme_btn.configure(text="☀️" if self._theme_name == "dark" else "🌙")
-        # 重绘渐变头部和饼图
-        self._draw_gradient_header()
-        if self._last_scan_result:
-            self._draw_pie_chart(self._last_scan_result.ext_stats)
-        # 重新填充指标
-        self.update_disk_info()
-        if self._last_scan_result:
-            r = self._last_scan_result
-            self._update_header_metrics(scan=f"{r.scan_time:.1f}s")
-        for tree in (
-            self.tree_dirs,
-            self.tree_files,
-            self.tree_ext,
-            self.tree_junk,
-            self.tree_age,
-            self.tree_filetree,
-            self.tree_dup,
-        ):
+        # 更新侧栏颜色
+        if self._sidebar:
+            self._sidebar.configure(bg=Palette.SIDEBAR_BG)
+        for label in self._sidebar_labels:
+            label.configure(bg=Palette.SIDEBAR_BG, fg=Palette.SIDEBAR_MUTED)
+        for p, btn in self._nav_buttons.items():
+            btn.configure(bg=Palette.SIDEBAR_HOVER if p == self._current_panel else Palette.SIDEBAR_BG)
+        for p, label in self._nav_labels.items():
+            label.configure(bg=Palette.SIDEBAR_BG,
+                            fg=Palette.SIDEBAR_ACTIVE if p == self._current_panel else Palette.SIDEBAR_FG)
+        # 更新所有 treeview 标签
+        for tree in (self.tree_top_dirs, self.tree_large_files, self.tree_dup, self.tree_junk):
             if tree:
                 tree.tag_configure("evenrow", background=Palette.STRIPE_EVEN)
                 tree.tag_configure("oddrow", background=Palette.STRIPE_ODD)
                 tree.tag_configure("highlight", background=Palette.HIGHLIGHT)
-        # Update LLM text widget colors
+        # 更新 LLM 文本颜色
         if self._llm_text:
-            self._llm_text.config(bg=Palette.FRAME_BG, fg=Palette.TEXT,
-                                  insertbackground=Palette.TEXT)
+            self._llm_text.config(bg=Palette.FRAME_BG, fg=Palette.TEXT, insertbackground=Palette.TEXT)
             self._llm_text.tag_configure("h1", foreground=Palette.PRIMARY)
             self._llm_text.tag_configure("h2", foreground=Palette.PRIMARY)
             self._llm_text.tag_configure("h3", foreground=Palette.TEXT)
             self._llm_text.tag_configure("dim", foreground=Palette.TEXT_MUTED)
-        # Update LLM status label
         if hasattr(self, '_llm_status') and self._llm_status:
             self._llm_status.config(foreground=Palette.TEXT_MUTED)
-        # Update empty overlay
-        if hasattr(self, '_empty_overlay') and self._empty_overlay:
-            self._empty_overlay.config(foreground=Palette.TEXT_MUTED)
-        # Update context menu colors
+        # 更新右键菜单颜色
         for menu in self._context_menus:
             try:
                 menu.config(bg=Palette.FRAME_BG, fg=Palette.TEXT,
-                            activebackground=Palette.HIGHLIGHT,
-                            activeforeground=Palette.TEXT)
+                            activebackground=Palette.HIGHLIGHT, activeforeground=Palette.TEXT)
             except tk.TclError:
                 pass
+        # 重绘环形图
+        if self._last_scan_result:
+            self._draw_donut_chart(self._last_scan_result.ext_stats)
 
     @staticmethod
     def _norm_path(p: str) -> str:
         """规范化路径用于缓存匹配（小写 + 去尾斜杠 + 统一分隔符）"""
         return os.path.normcase(os.path.normpath(p))
 
-    # ---- 目录树懒加载 ----
-    def _populate_filetree(self, path: str) -> None:
-        assert self.tree_filetree is not None
-        self.tree_filetree.delete(*self.tree_filetree.get_children())
-        self._loaded_nodes.clear()
-        if not os.path.isdir(path):
-            self.tree_filetree.insert(
-                "", tk.END, text="目录不存在", values=("", path)
-            )
-            return
-        # P2: 根目录加图标
-        self.tree_filetree.insert(
-            "",
-            tk.END,
-            iid=path,
-            text="📁 " + (os.path.basename(path) or path),
-            values=("", path),
-            open=True,
-        )
-        self._load_children(path)
-
-    def _on_filetree_expand(self, event: tk.Event) -> None:
-        assert self.tree_filetree is not None
-        iid: str = self.tree_filetree.focus()
-        logger.debug("TreeviewOpen: iid=%s, in_loaded=%s, isdir=%s",
-                      iid, iid in self._loaded_nodes, os.path.isdir(iid) if iid else False)
-        if iid and iid not in self._loaded_nodes and os.path.isdir(iid):
-            self._load_children(iid)
-
-    def _on_filetree_double_click(self, event: tk.Event) -> str:
-        """目录树双击：用 identify_row 精确定位，目录→打开，文件→用默认程序打开"""
-        assert self.tree_filetree is not None
-        iid: str = self.tree_filetree.identify_row(event.y)
-        if not iid:
-            return "break"
-        if os.path.isdir(iid):
-            open_file_or_dir(iid)
-        elif os.path.isfile(iid):
-            # 文件用系统默认程序打开
-            try:
-                if sys.platform == "win32":
-                    os.startfile(iid)
-                elif sys.platform == "darwin":
-                    subprocess.Popen(["open", iid])
-                else:
-                    subprocess.Popen(["xdg-open", iid])
-            except Exception as e:
-                logger.error("打开文件失败 %s: %s", iid, e)
-        return "break"  # 阻止通用 <Double-1> 处理
-
-    def _filetree_get_selected_path(self) -> Optional[str]:
-        """获取目录树中选中的路径（用 selection 而非 focus）"""
-        assert self.tree_filetree is not None
-        sel = self.tree_filetree.selection()
-        if sel:
-            return sel[0]
-        return None
-
-    def _filetree_open(self) -> None:
-        """右键打开：目录→资源管理器，文件→默认程序"""
-        path = self._filetree_get_selected_path()
-        if not path:
-            return
-        if os.path.isfile(path):
-            try:
-                if sys.platform == "win32":
-                    os.startfile(path)
-                elif sys.platform == "darwin":
-                    subprocess.Popen(["open", path])
-                else:
-                    subprocess.Popen(["xdg-open", path])
-            except Exception as e:
-                logger.error("打开文件失败 %s: %s", path, e)
-        else:
-            open_file_or_dir(path)
-
-    def _filetree_continue_scan(self) -> None:
-        """右键继续扫描此目录"""
-        path = self._filetree_get_selected_path()
-        if not path or not os.path.isdir(path):
-            return
-        if messagebox.askyesno("继续扫描", f"将以此目录为起点重新扫描:\n{path}"):
-            self.stop_scan()
-            self.path_var.set(path)
-            self.start_scan()
-
-    def _filetree_delete(self, recycle: bool = True) -> None:
-        """右键删除文件/目录"""
-        path = self._filetree_get_selected_path()
-        if not path:
-            return
-        if self.simulate_mode_var.get():
-            action = "移至回收站" if recycle else "永久删除"
-            messagebox.showinfo("模拟模式拦截", f"欲执行: {action}\n目标: {path}")
-            return
-        confirm_msg = f"确定要删除吗？\n{path}\n此操作{'将移入回收站' if recycle else '不可撤销'}！"
-        if not messagebox.askyesno("确认删除", confirm_msg):
-            return
-        try:
-            if recycle and HAS_SEND2TRASH:
-                send2trash.send2trash(path)
-            elif os.path.isfile(path):
-                os.remove(path)
-            else:
-                shutil.rmtree(path)
-            # 从树中移除
-            try:
-                self.tree_filetree.delete(path)
-            except tk.TclError:
-                pass
-            self.update_disk_info()
-            if self.status_label:
-                self.status_label.config(text=f"已删除: {path}")
-        except Exception as e:
-            messagebox.showerror("删除失败", str(e))
-            logger.error("删除失败 %s: %s", path, e)
-
-    def _load_children(self, parent_path: str) -> None:
-        """加载子目录，大小从扫描缓存读取。"""
-        assert self.tree_filetree is not None
-        if parent_path in self._loaded_nodes:
-            return
-        logger.debug("_load_children called for: %s", parent_path)
-
-        children: List[str] = list(self.tree_filetree.get_children(parent_path))
-        for child in children:
-            if self.tree_filetree.item(child, "text") == "...":
-                self.tree_filetree.delete(child)
-
-        child_info: List[Tuple[str, int]] = []  # (path, size)
-        try:
-            with os.scandir(long_path_prefix(parent_path)) as it:
-                for entry in it:
-                    if entry.is_dir(follow_symlinks=False) and not entry.is_symlink():
-                        key: str = self._norm_path(entry.path)
-                        size: int = self._dir_size_cache.get(key, -1)
-                        child_info.append((entry.path, size))
-        except OSError as e:
-            logger.debug("扫描子目录失败 %s: %s", parent_path, e)
-            return
-
-        # 只有真正有子目录时才标记已加载
-        if child_info:
-            self._loaded_nodes.add(parent_path)
-
-        # 分离：有缓存的 vs 无缓存的
-        cached: List[Tuple[str, int]] = [(p, s) for p, s in child_info if s >= 0]
-        uncached: List[str] = [p for p, s in child_info if s < 0]
-
-        # 有缓存的按大小降序
-        cached.sort(key=lambda x: x[1], reverse=True)
-
-        # 先插入有缓存的（真实大小），加占位子节点以显示展开箭头
-        for child_path, child_size in cached:
-            try:
-                name: str = os.path.basename(child_path)
-                self.tree_filetree.insert(
-                    parent_path,
-                    tk.END,
-                    iid=child_path,
-                    text="📁 " + name,
-                    values=(format_size(child_size), child_path),
-                )
-                self.tree_filetree.insert(
-                    child_path, tk.END, text="...", values=("", "")
-                )
-            except tk.TclError:
-                pass
-
-        # 无缓存的显示"计算中..."，后台算完再刷新
-        for child_path in uncached:
-            try:
-                name: str = os.path.basename(child_path)
-                self.tree_filetree.insert(
-                    parent_path,
-                    tk.END,
-                    iid=child_path,
-                    text="📁 " + name,
-                    values=("计算中...", child_path),
-                )
-                self.tree_filetree.insert(
-                    child_path, tk.END, text="...", values=("", "")
-                )
-            except tk.TclError:
-                pass
-
-        if not cached and not uncached:
-            # 无子目录 → 列出文件
-            files: List[Tuple[str, int]] = []
-            try:
-                with os.scandir(long_path_prefix(parent_path)) as it:
-                    for entry in it:
-                        if entry.is_file(follow_symlinks=False):
-                            try:
-                                fsize: int = entry.stat(follow_symlinks=False).st_size
-                            except OSError:
-                                fsize = 0
-                            files.append((entry.path, fsize))
-            except OSError:
-                pass
-            if files:
-                self._loaded_nodes.add(parent_path)
-                files.sort(key=lambda x: x[1], reverse=True)
-                for fpath, fsize in files:
-                    try:
-                        fname: str = os.path.basename(fpath)
-                        self.tree_filetree.insert(
-                            parent_path,
-                            tk.END,
-                            iid=fpath,
-                            text="📄 " + fname,
-                            values=(format_size(fsize), fpath),
-                        )
-                    except tk.TclError:
-                        pass
-            else:
-                self.tree_filetree.insert(
-                    parent_path, tk.END, text="(空目录)", values=("", "")
-                )
-
-        # 后台补齐无缓存的大小
-        if uncached:
-            def _fill_missing() -> None:
-                results: List[Tuple[str, int]] = []
-                for cpath in uncached:
-                    total: int = 0
-                    try:
-                        for dirpath, _dirnames, filenames in os.walk(
-                            cpath, followlinks=False
-                        ):
-                            for fname in filenames:
-                                try:
-                                    total += os.path.getsize(
-                                        os.path.join(dirpath, fname)
-                                    )
-                                except OSError:
-                                    pass
-                    except OSError:
-                        pass
-                    results.append((cpath, total))
-                    # 写入缓存
-                    self._dir_size_cache[self._norm_path(cpath)] = total
-                # 回主线程刷新 + 重排全部子节点
-                self.root.after(
-                    0,
-                    lambda: self._refresh_children(parent_path, results),
-                )
-
-            threading.Thread(target=_fill_missing, daemon=True).start()
-
     def _load_size_cache(self) -> None:
         """从磁盘加载大小缓存"""
         try:
-            with open(self.cache_file, 'r') as f:
+            with open(self.cache_file, 'r', encoding='utf-8') as f:
                 self._dir_size_cache = json.load(f)
         except Exception:
             self._dir_size_cache = {}
@@ -2521,47 +2498,10 @@ class DiskAnalyzerApp:
         """保存大小缓存到磁盘"""
         try:
             os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
-            with open(self.cache_file, 'w') as f:
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
                 json.dump(self._dir_size_cache, f)
         except Exception as e:
             logger.debug("保存缓存失败: %s", e)
-
-    def _refresh_children(
-        self, parent: str, updated: List[Tuple[str, int]]
-    ) -> None:
-        """更新无缓存节点的大小，并按大小重排所有子节点"""
-        assert self.tree_filetree is not None
-        # 更新大小
-        for cpath, total in updated:
-            try:
-                self.tree_filetree.set(cpath, "size", format_size(total))
-            except tk.TclError:
-                pass
-        # 收集所有子节点，按大小降序重排
-        all_children: List[Tuple[str, int]] = []
-        for child_iid in self.tree_filetree.get_children(parent):
-            size_text: str = self.tree_filetree.set(child_iid, "size")
-            # 解析 "1.23 GB" 回字节数用于排序
-            all_children.append((child_iid, self._parse_size(size_text)))
-        all_children.sort(key=lambda x: x[1], reverse=True)
-        for idx, (child_iid, _) in enumerate(all_children):
-            try:
-                self.tree_filetree.move(child_iid, parent, idx)
-            except tk.TclError:
-                pass
-
-    @staticmethod
-    def _parse_size(text: str) -> int:
-        """把 '1.23 GB' 解析回字节数，用于排序"""
-        try:
-            parts = text.split()
-            if len(parts) != 2:
-                return 0
-            val = float(parts[0])
-            units = {"B": 1, "KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4}
-            return int(val * units.get(parts[1], 1))
-        except (ValueError, IndexError):
-            return 0
 
     @staticmethod
     def _size_to_float(val: str) -> float:
@@ -2603,8 +2543,10 @@ class DiskAnalyzerApp:
             self.status_label.config(text=f"已复制: {path}")
 
     def _continue_scan_dir(self) -> None:
-        assert self.tree_dirs is not None
-        sel: Tuple[str, ...] = self.tree_dirs.selection()
+        tree = self.tree_top_dirs
+        if not tree:
+            return
+        sel: Tuple[str, ...] = tree.selection()
         if not sel:
             return
         path: str = sel[0]
@@ -2616,8 +2558,10 @@ class DiskAnalyzerApp:
             self.start_scan()
 
     def _delete_selected_file(self, recycle: bool = True) -> None:
-        assert self.tree_files is not None
-        sel: Tuple[str, ...] = self.tree_files.selection()
+        tree = self.tree_large_files
+        if not tree:
+            return
+        sel: Tuple[str, ...] = tree.selection()
         if not sel:
             return
         path: str = sel[0]
@@ -2638,7 +2582,7 @@ class DiskAnalyzerApp:
                 send2trash.send2trash(path)
             else:
                 os.remove(path)
-            self.tree_files.delete(sel[0])
+            tree.delete(sel[0])
             self.update_disk_info()
             if self.status_label:
                 self.status_label.config(text=f"已删除: {path}")
@@ -2701,7 +2645,7 @@ class DiskAnalyzerApp:
             logger.error("永久删除失败 %s: %s", path, e)
 
     def update_disk_info(self) -> None:
-        """更新头部指标卡片（总容量/已使用/可用）"""
+        """更新概览面板的统计卡片"""
         total_all: int = 0
         used_all: int = 0
         free_all: int = 0
@@ -2719,26 +2663,15 @@ class DiskAnalyzerApp:
 
         if total_all > 0:
             pct = int(used_all * 100 / total_all)
-            self._update_header_metrics(
-                total=format_size(total_all),
-                used=f"{format_size(used_all)} ({pct}%)",
-                free=format_size(free_all),
-            )
-            # P3: 更新使用率进度条
-            if hasattr(self, '_usage_bar_id'):
-                bar_x, bar_y, bar_w, bar_h = 24, 70, 200, 12
-                fill_w = int(bar_w * pct / 100)
-                # 颜色根据使用率变化
-                if pct >= 90:
-                    bar_color = Palette.DANGER
-                elif pct >= 75:
-                    bar_color = Palette.WARNING
-                else:
-                    bar_color = Palette.METRIC_FREE
-                self._header_canvas.coords(self._usage_bar_id,
-                                           bar_x, bar_y, bar_x + fill_w, bar_y + bar_h)
-                self._header_canvas.itemconfig(self._usage_bar_id, fill=bar_color)
-                self._header_canvas.itemconfig(self._usage_text_id, text=f"{pct}%")
+            if "total" in self._stat_labels:
+                self._stat_labels["total"].configure(text=format_size(total_all))
+            if "used" in self._stat_labels:
+                self._stat_labels["used"].configure(text=f"{format_size(used_all)} ({pct}%)")
+            if "free" in self._stat_labels:
+                self._stat_labels["free"].configure(text=format_size(free_all))
+            # 更新健康度进度条
+            if "disk_usage" in self._health_bars:
+                self._draw_health_bar("disk_usage", pct, Palette.PRIMARY if pct < 75 else Palette.WARNING if pct < 90 else Palette.DANGER)
         # 更新底部状态栏
         if hasattr(self, '_sb_left'):
             disk_info = " | ".join(
@@ -2748,6 +2681,20 @@ class DiskAnalyzerApp:
             )
             self._sb_left.config(text=disk_info or "就绪")
 
+    def _draw_health_bar(self, key: str, pct: int, color: str) -> None:
+        """绘制健康度进度条"""
+        canvas = self._health_bars.get(key)
+        if not canvas:
+            return
+        canvas.delete("all")
+        w = canvas.winfo_width()
+        if w < 2:
+            w = 200
+        h = 8
+        fill_w = max(0, min(w, int(w * pct / 100)))
+        canvas.create_rectangle(0, 0, fill_w, h, fill=color, outline="")
+        canvas.create_text(w + 8, h // 2, text=f"{pct}%", anchor="w", font=("", 8), fill=Palette.TEXT_MUTED)
+
     def _load_partitions(self) -> None:
         """Deferred partition loading to avoid blocking startup"""
         partitions: List[str] = []
@@ -2756,6 +2703,9 @@ class DiskAnalyzerApp:
                 continue
             try:
                 usage = psutil.disk_usage(p.mountpoint)
+                if usage.total <= 0:
+                    partitions.append(p.mountpoint)
+                    continue
                 pct = int(usage.used * 100 / usage.total)
                 label = f"{p.mountpoint} ({pct}%)"
                 partitions.append(label)
@@ -2799,12 +2749,9 @@ class DiskAnalyzerApp:
             self.stop_scan()
             self.scan_thread.join(timeout=1.0)
 
-        for tree in (self.tree_dirs, self.tree_files, self.tree_ext, self.tree_junk, self.tree_age):
+        for tree in (self.tree_top_dirs, self.tree_large_files, self.tree_junk, self.tree_dup):
             if tree:
                 tree.delete(*tree.get_children())
-        assert self.tree_filetree is not None
-        self.tree_filetree.delete(*self.tree_filetree.get_children())
-        self._loaded_nodes.clear()
         self._loaded_cache = False
 
         self.progress_var.set(0)
@@ -2843,9 +2790,9 @@ class DiskAnalyzerApp:
         if self.scan_btn:
             self.scan_btn.config(text=f"  ⏳ 扫描中{dots}  ")
         if self.status_label and elapsed > 1:
-            current = self.status_label.cget("text")
-            if current and not current.startswith("完成"):
-                self.status_label.config(text=f"{current}  [{elapsed:.0f}s]")
+            base = self._last_progress_msg
+            if base and not base.startswith("完成"):
+                self.status_label.config(text=f"{base}  [{elapsed:.0f}s]")
         self.root.after(1000, self._animate_scan_btn)
 
     def stop_scan(self) -> None:
@@ -2867,6 +2814,7 @@ class DiskAnalyzerApp:
         ):
             return
         self.last_update_time = now
+        self._last_progress_msg = msg  # BUG FIX: 保存原始消息
         self.root.after(
             0,
             lambda m=msg: (self.status_label.config(text=m) if self.status_label else None),
@@ -2921,124 +2869,97 @@ class DiskAnalyzerApp:
             self._dir_size_cache = result.dir_size_cache
             self._populate_trees(result)
             self._populate_duplicates(result)
-            self._draw_pie_chart(result.ext_stats)
             save_cache(result)
             self._save_size_cache()
-            self._populate_filetree(self.path_var.get())
+            self._save_scan_entry(result)
 
             # LLM 分析就绪提示
             if self._llm_btn:
                 self._llm_btn.config(state=tk.NORMAL)
             if self._llm_status:
                 if self.config.llm_configured:
-                    self._llm_status.config(
-                        text="扫描完成，可点击「🤖 开始 AI 分析」",
-                        foreground=Palette.SUCCESS,
-                    )
+                    self._llm_status.config(text="扫描完成，可点击「🤖 开始 AI 分析」", foreground=Palette.SUCCESS)
                 else:
-                    self._llm_status.config(
-                        text="扫描完成。在「配置 → LLM 分析」中设置 API 后可使用 AI 分析",
-                        foreground=Palette.TEXT_MUTED,
-                    )
+                    self._llm_status.config(text="扫描完成。在「设置 → LLM 配置」中设置 API 后可使用 AI 分析", foreground=Palette.TEXT_MUTED)
 
             if self.status_label:
                 self.status_label.config(
-                    text=(
-                        f"完成 | 占用总计: {format_size(result.total_used)} | "
-                        f"耗时: {result.scan_time:.1f}s | 检索: {result.scanned_items} 项"
-                    )
+                    text=f"完成 | 占用总计: {format_size(result.total_used)} | "
+                         f"耗时: {result.scan_time:.1f}s | 检索: {result.scanned_items} 项"
                 )
-            self._update_header_metrics(scan=f"{result.scan_time:.1f}s")
             if hasattr(self, '_sb_right'):
                 self._sb_right.config(
                     text=f"扫描 {result.scanned_items} 项 · {format_size(result.total_used)} · {result.scan_time:.1f}s"
                 )
+            # 自动切换到概览面板
+            self._show_panel("overview")
 
         self.root.after(0, _on_done)
 
     def _populate_trees(self, result: ScanResult) -> None:
-        # Hide empty state overlay
-        if hasattr(self, '_empty_overlay') and self._empty_overlay:
-            self._empty_overlay.place_forget()
-        assert self.tree_dirs is not None
-        for i, (size, path) in enumerate(result.top_dirs):
-            tag: str = "evenrow" if i % 2 == 0 else "oddrow"
-            marker: str = (
-                "[可清理] " if any(kw in path.lower() for kw in self.JUNK_KEYWORDS) else ""
-            )
-            # P1: 目录加图标
-            self.tree_dirs.insert(
-                "", tk.END, iid=path, values=(format_size(size), "📁 " + marker + path), tags=(tag,)
-            )
-        if not result.top_dirs:
-            self.tree_dirs.insert(
-                "", tk.END, iid="__empty_dirs__", values=("", "暂无数据"), tags=("oddrow",)
-            )
-
-        assert self.tree_files is not None
-        for i, (size, path) in enumerate(result.top_files):
-            tag = "evenrow" if i % 2 == 0 else "oddrow"
-            try:
-                mtime: str = datetime.fromtimestamp(os.path.getmtime(path)).strftime(
-                    "%Y-%m-%d %H:%M"
+        # 概览面板：最大目录
+        if self.tree_top_dirs:
+            for i, (size, path) in enumerate(result.top_dirs):
+                tag: str = "evenrow" if i % 2 == 0 else "oddrow"
+                marker: str = "[可清理] " if any(kw in path.lower() for kw in self.JUNK_KEYWORDS) else ""
+                self.tree_top_dirs.insert(
+                    "", tk.END, iid=path, values=(format_size(size), "📁 " + marker + path), tags=(tag,)
                 )
-            except Exception:
-                mtime = "未知"
-            self.tree_files.insert(
-                "", tk.END, iid=path, values=(format_size(size), mtime, "📄 " + path), tags=(tag,)
-            )
-        if not result.top_files:
-            self.tree_files.insert(
-                "",
-                tk.END,
-                iid="__empty_files__",
-                values=("", "", "暂无数据"),
-                tags=("oddrow",),
-            )
 
-        assert self.tree_ext is not None
-        for i, (ext, size) in enumerate(result.ext_stats):
-            tag = "evenrow" if i % 2 == 0 else "oddrow"
-            self.tree_ext.insert(
-                "",
-                tk.END,
-                values=(ext if ext else "(无后缀)", format_size(size)),
-                tags=(tag,),
-            )
+        # 大文件面板
+        if self.tree_large_files:
+            for i, (size, path) in enumerate(result.top_files):
+                tag = "evenrow" if i % 2 == 0 else "oddrow"
+                ext = os.path.splitext(path)[1].lower()
+                try:
+                    mtime: str = datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    mtime = "未知"
+                self.tree_large_files.insert(
+                    "", tk.END, iid=path,
+                    values=(format_size(size), ext or "—", mtime, "📄 " + path), tags=(tag,)
+                )
+            if hasattr(self, '_large_files_info') and self._large_files_info:
+                total_large = sum(s for s, _ in result.top_files)
+                self._large_files_info.configure(
+                    text=f"共 {len(result.top_files)} 个大文件，总计 {format_size(total_large)}"
+                )
 
-        assert self.tree_junk is not None
-        for i, (path, size) in enumerate(result.junk_dirs):
-            tag = "evenrow" if i % 2 == 0 else "oddrow"
-            self.tree_junk.insert(
-                "", tk.END, iid=path, values=(format_size(size), "🗑️ " + path), tags=(tag,)
-            )
+        # 临时文件面板
+        if self.tree_junk:
+            for i, (path, size) in enumerate(result.junk_dirs):
+                tag = "evenrow" if i % 2 == 0 else "oddrow"
+                self.tree_junk.insert(
+                    "", tk.END, iid=path, values=(format_size(size), "🗑️ " + path), tags=(tag,)
+                )
+            if hasattr(self, '_temp_files_info') and self._temp_files_info:
+                total_junk = sum(s for _, s in result.junk_dirs)
+                self._temp_files_info.configure(
+                    text=f"可安全清理 {format_size(total_junk)}，共 {len(result.junk_dirs)} 个项目"
+                )
 
-        assert self.tree_age is not None
-        age_data: Dict[str, Tuple[int, int]] = result.age_groups or {}
-        for i, label in enumerate(AGE_GROUP_KEYS):
-            tag = "evenrow" if i % 2 == 0 else "oddrow"
-            info: Tuple[int, int] = age_data.get(label, (0, 0))
-            cnt: int = info[0] if isinstance(info, (list, tuple)) else int(info)
-            sz: int = (
-                info[1]
-                if isinstance(info, (list, tuple)) and len(info) > 1
-                else 0
+        # 更新可清理空间统计
+        cleanable = sum(s for _, s in result.junk_dirs)
+        if "cleanable" in self._stat_labels:
+            self._stat_labels["cleanable"].configure(text=format_size(cleanable))
+
+        # 绘制环形图
+        self._draw_donut_chart(result.ext_stats)
+
+        # 更新健康度条
+        if result.age_groups:
+            age_data = result.age_groups
+            old_count = sum(
+                (age_data.get(k, (0, 0))[0] if isinstance(age_data.get(k), (list, tuple)) else age_data.get(k, 0))
+                for k in ["1-7天", "8-30天", "1-3月"]
             )
-            self.tree_age.insert(
-                "",
-                tk.END,
-                values=(label, str(cnt), format_size(sz) if sz else "-"),
-                tags=(tag,),
-            )
-        if not any(
-            (
+            total_files = sum(
                 (age_data.get(k, (0, 0))[0] if isinstance(age_data.get(k), (list, tuple)) else age_data.get(k, 0))
                 for k in AGE_GROUP_KEYS
             )
-        ):
-            self.tree_age.insert(
-                "", tk.END, values=("暂无数据", "", ""), tags=("oddrow",)
-            )
+            if total_files > 0 and "cleanable" in self._health_bars:
+                cleanable_pct = min(100, int(cleanable * 100 / max(1, result.total_used)))
+                self._draw_health_bar("cleanable", cleanable_pct, Palette.WARNING)
 
     def _populate_duplicates(self, result: ScanResult) -> None:
         """P3: 填充重复文件 Tab"""
@@ -3086,79 +3007,94 @@ class DiskAnalyzerApp:
             )
 
     PIE_COLORS = [
-        "#3B82F6", "#F59E0B", "#22C55E", "#EF4444", "#A855F7",
-        "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#84CC16",
+        "#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
+        "#06B6D4", "#84CC16", "#F97316", "#6366F1", "#EC4899",
     ]
 
-    def _draw_pie_chart(self, ext_stats: List[Tuple[str, int]]) -> None:
-        """P3: 绘制文件类型饼图"""
-        c = self._pie_canvas
-        c.delete("all")
-
-        if not ext_stats:
-            c.create_text(200, 100, text="暂无数据", fill=Palette.TEXT_MUTED, font=("", 10))
+    def _draw_donut_chart(self, ext_stats: List[Tuple[str, int]]) -> None:
+        """绘制环形图（概览面板）"""
+        c = self._donut_canvas
+        if not c:
             return
-
-        # 取 top 8 + 其他
-        top_n = 8
+        c.delete("all")
+        if not ext_stats:
+            c.create_text(160, 100, text="暂无数据", fill=Palette.TEXT_MUTED, font=("", 10))
+            return
+        top_n = 6
         top = ext_stats[:top_n]
         other_size = sum(s for _, s in ext_stats[top_n:])
         total = sum(s for _, s in ext_stats)
-
         if total == 0:
             return
-
-        # 准备数据
         slices = [(ext if ext else "(无后缀)", size) for ext, size in top]
         if other_size > 0:
             slices.append(("其他", other_size))
-
-        # 饼图参数
-        cx, cy, r = 80, 110, 80
-        start_angle = 0
-
+        # 环形图参数
+        cx, cy, r_outer, r_inner = 80, 100, 70, 40
+        start_angle = 90
         for i, (label, size) in enumerate(slices):
             extent = 360 * size / total
             color = self.PIE_COLORS[i % len(self.PIE_COLORS)]
-
-            # 画扇形
-            c.create_arc(
-                cx - r, cy - r, cx + r, cy + r,
-                start=start_angle, extent=extent,
-                fill=color, outline=Palette.FRAME_BG, width=2,
-            )
+            # 外圆弧
+            c.create_arc(cx - r_outer, cy - r_outer, cx + r_outer, cy + r_outer,
+                         start=start_angle, extent=extent, fill=color, outline=Palette.FRAME_BG, width=2, style="pieslice")
             start_angle += extent
-
+        # 中心白色圆（形成环形效果）
+        c.create_oval(cx - r_inner, cy - r_inner, cx + r_inner, cy + r_inner,
+                      fill=Palette.FRAME_BG, outline=Palette.FRAME_BG)
+        # 中心文字
+        c.create_text(cx, cy - 6, text="已使用", font=("", 8), fill=Palette.TEXT_MUTED)
+        c.create_text(cx, cy + 10, text=format_size(total), font=("", 11, "bold"), fill=Palette.TEXT)
         # 图例
-        legend_x = 190
-        legend_y = 20
+        legend_x = 175
+        legend_y = 15
         for i, (label, size) in enumerate(slices):
             pct = size * 100 / total
             color = self.PIE_COLORS[i % len(self.PIE_COLORS)]
-            y = legend_y + i * 22
+            y = legend_y + i * 24
+            c.create_rectangle(legend_x, y, legend_x + 12, y + 12, fill=color, outline="")
+            c.create_text(legend_x + 18, y + 6,
+                          text=f"{label}  {format_size(size)} ({pct:.1f}%)",
+                          anchor="w", font=("", 9), fill=Palette.TEXT)
 
-            # 色块
-            c.create_rectangle(legend_x, y, legend_x + 14, y + 14, fill=color, outline="")
-            # 文字
-            c.create_text(
-                legend_x + 20, y + 7,
-                text=f"{label}  {format_size(size)} ({pct:.1f}%)",
-                anchor="w", font=("", 9), fill=Palette.TEXT,
-            )
+    # ---- 扫描历史 ----
+    def _load_scan_history(self) -> List[Dict[str, Any]]:
+        try:
+            if os.path.exists(self._history_file):
+                with open(self._history_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return []
 
-        # 总计
-        c.create_text(
-            legend_x, legend_y + len(slices) * 22 + 10,
-            text=f"总计: {format_size(total)} ({len(ext_stats)} 种类型)",
-            anchor="w", font=("", 9, "bold"), fill=Palette.TEXT,
-        )
+    def _save_scan_entry(self, result: ScanResult) -> None:
+        history = self._load_scan_history()
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "scan_path": self.path_var.get(),
+            "total_used": result.total_used,
+            "scan_time": result.scan_time,
+            "scanned_items": result.scanned_items,
+            "cleanable": sum(s for _, s in result.junk_dirs),
+            "dup_groups": len(result.duplicates) if result.duplicates else 0,
+        }
+        history.append(entry)
+        # 只保留最近 100 条
+        if len(history) > 100:
+            history = history[-100:]
+        try:
+            os.makedirs(os.path.dirname(self._history_file), exist_ok=True)
+            with open(self._history_file, "w", encoding="utf-8") as f:
+                json.dump(history, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            logger.debug("保存历史失败: %s", e)
 
     def export_report(self) -> None:
         if self._loaded_cache:
             messagebox.showinfo("提示", "当前为缓存数据，请先执行一次新扫描后再导出。")
             return
-        assert self.tree_dirs is not None
-        if not self.tree_dirs.get_children():
+        tree = self.tree_top_dirs
+        if not tree or not tree.get_children():
             messagebox.showinfo("提示", "当前无分析数据，请先扫描。")
             return
         fp: str = filedialog.asksaveasfilename(
@@ -3179,29 +3115,22 @@ class DiskAnalyzerApp:
             logger.error("导出报告失败: %s", e)
 
     def _export_json(self, fp: str) -> None:
-        data: Dict[str, Any] = {
-            "scan_time": datetime.now().isoformat(),
-            "top_dirs": [],
-            "top_files": [],
-            "junk_dirs": [],
-        }
-        assert self.tree_dirs is not None
-        for child in self.tree_dirs.get_children():
-            vals: List[Any] = self.tree_dirs.item(child)["values"]
-            if vals and vals[0]:
-                data["top_dirs"].append({"size": vals[0], "path": str(vals[1])})
-        assert self.tree_files is not None
-        for child in self.tree_files.get_children():
-            vals = self.tree_files.item(child)["values"]
-            if vals and vals[0]:
-                data["top_files"].append(
-                    {"size": vals[0], "path": str(vals[2]), "mtime": vals[1]}
-                )
-        assert self.tree_junk is not None
-        for child in self.tree_junk.get_children():
-            vals = self.tree_junk.item(child)["values"]
-            if vals and vals[0]:
-                data["junk_dirs"].append({"size": vals[0], "path": str(vals[1])})
+        data: Dict[str, Any] = {"scan_time": datetime.now().isoformat(), "top_dirs": [], "top_files": [], "junk_dirs": []}
+        if self.tree_top_dirs:
+            for child in self.tree_top_dirs.get_children():
+                vals = self.tree_top_dirs.item(child)["values"]
+                if vals and vals[0]:
+                    data["top_dirs"].append({"size": vals[0], "path": str(vals[1])})
+        if self.tree_large_files:
+            for child in self.tree_large_files.get_children():
+                vals = self.tree_large_files.item(child)["values"]
+                if vals and vals[0]:
+                    data["top_files"].append({"size": vals[0], "path": str(vals[3]), "mtime": vals[2]})
+        if self.tree_junk:
+            for child in self.tree_junk.get_children():
+                vals = self.tree_junk.item(child)["values"]
+                if vals and vals[0]:
+                    data["junk_dirs"].append({"size": vals[0], "path": str(vals[1])})
         with open(fp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -3209,25 +3138,21 @@ class DiskAnalyzerApp:
         with open(fp, "w", encoding="utf-8-sig", newline="") as f:
             writer: csv.writer = csv.writer(f)
             writer.writerow(["类别", "大小", "路径/扩展名", "修改时间"])
-            assert self.tree_dirs is not None
-            for child in self.tree_dirs.get_children():
-                vals: List[Any] = self.tree_dirs.item(child)["values"]
-                if vals and vals[0]:
-                    writer.writerow(["大目录", vals[0], str(vals[1]), ""])
-            assert self.tree_files is not None
-            for child in self.tree_files.get_children():
-                vals = self.tree_files.item(child)["values"]
-                if vals and vals[0]:
-                    writer.writerow(["大文件", vals[0], str(vals[2]), vals[1]])
-            assert self.tree_ext is not None
-            for child in self.tree_ext.get_children():
-                vals = self.tree_ext.item(child)["values"]
-                writer.writerow(["文件类型", vals[1], vals[0], ""])
-            assert self.tree_junk is not None
-            for child in self.tree_junk.get_children():
-                vals = self.tree_junk.item(child)["values"]
-                if vals and vals[0]:
-                    writer.writerow(["垃圾目录", vals[0], str(vals[1]), ""])
+            if self.tree_top_dirs:
+                for child in self.tree_top_dirs.get_children():
+                    vals = self.tree_top_dirs.item(child)["values"]
+                    if vals and vals[0]:
+                        writer.writerow(["大目录", vals[0], str(vals[1]), ""])
+            if self.tree_large_files:
+                for child in self.tree_large_files.get_children():
+                    vals = self.tree_large_files.item(child)["values"]
+                    if vals and vals[0]:
+                        writer.writerow(["大文件", vals[0], str(vals[3]), vals[2]])
+            if self.tree_junk:
+                for child in self.tree_junk.get_children():
+                    vals = self.tree_junk.item(child)["values"]
+                    if vals and vals[0]:
+                        writer.writerow(["垃圾目录", vals[0], str(vals[1]), ""])
 
     def open_config_dialog(self) -> None:
         dlg: tk.Toplevel = tk.Toplevel(self.root)
@@ -3377,8 +3302,8 @@ class DiskAnalyzerApp:
         ttk.Button(
             btn_frame, text="保存并关闭", command=save_conf, style="Accent.TButton"
         ).pack(side=tk.RIGHT)
-        dlg.protocol("WM_DELETE_WINDOW", lambda: (self.config.save(), dlg.destroy()))
-        dlg.bind("<Escape>", lambda e: (self.config.save(), dlg.destroy()))
+        dlg.protocol("WM_DELETE_WINDOW", dlg.destroy)
+        dlg.bind("<Escape>", lambda e: dlg.destroy())
 
 
     def _delete_selected_dup(self, recycle: bool = True) -> None:

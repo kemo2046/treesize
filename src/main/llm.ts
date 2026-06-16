@@ -96,6 +96,19 @@ export class LLMAnalyzer {
         }
       }
 
+      // Flush remaining buffer (last SSE frame may not end with \n)
+      const remaining = buffer.trim();
+      if (remaining && remaining.startsWith('data: ')) {
+        const tail = remaining.slice(6);
+        if (tail !== '[DONE]') {
+          try {
+            const parsed = JSON.parse(tail);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) options.onToken?.(content);
+          } catch { /* ignore */ }
+        }
+      }
+
       options.onDone?.();
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') {

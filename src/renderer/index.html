@@ -325,6 +325,7 @@ td input[type="checkbox"] { accent-color: var(--accent); }
 .stat-row strong { color: var(--fg); }
 .mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; } .mt-20 { margin-top: 20px; }
 .mb-8 { margin-bottom: 8px; } .mb-12 { margin-bottom: 12px; } .mb-16 { margin-bottom: 16px; } .mb-20 { margin-bottom: 20px; }
+.ml-8 { margin-left: 8px; } .ml-12 { margin-left: 12px; } .ml-16 { margin-left: 16px; }
 .text-success { color: var(--success); }
 .text-warning { color: var(--warning); }
 .text-danger { color: var(--danger); }
@@ -649,6 +650,7 @@ let ctxTargetPath = null;
 
 // ─── Helpers ───
 function formatSize(bytes) {
+  if (typeof bytes !== 'number' || !isFinite(bytes) || bytes < 0) return '0 B';
   if (bytes >= 1024**4) return (bytes / 1024**4).toFixed(2) + ' TB';
   if (bytes >= 1024**3) return (bytes / 1024**3).toFixed(2) + ' GB';
   if (bytes >= 1024**2) return (bytes / 1024**2).toFixed(2) + ' MB';
@@ -730,20 +732,23 @@ function setTheme(theme) {
 $('#btnTheme').addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
 
 // ─── Disk Selector ───
+$('#diskSelect').addEventListener('change', function() {
+  $('#scanPathInput').value = this.value;
+});
+
 async function loadDiskSelector() {
-  const disks = await window.api.getDiskInfo();
-  const select = $('#diskSelect');
-  select.innerHTML = '';
-  for (const d of disks) {
-    const label = `${d.mountpoint} (${formatSize(d.free)} 可用)`;
-    const opt = document.createElement('option');
-    opt.value = d.mountpoint;
-    opt.textContent = label;
-    select.appendChild(opt);
-  }
-  select.addEventListener('change', () => {
-    $('#scanPathInput').value = select.value;
-  });
+  try {
+    const disks = await window.api.getDiskInfo();
+    const select = $('#diskSelect');
+    select.innerHTML = '';
+    for (const d of disks) {
+      const label = `${d.mountpoint} (${formatSize(d.free)} 可用)`;
+      const opt = document.createElement('option');
+      opt.value = d.mountpoint;
+      opt.textContent = label;
+      select.appendChild(opt);
+    }
+  } catch (e) { console.error('loadDiskSelector error:', e); }
 }
 
 // ─── Scan ───
@@ -768,6 +773,7 @@ $('#scanPathInput').addEventListener('keydown', (e) => {
 });
 
 function startScan(path) {
+  window.api.stopScan(); // Cancel any in-progress scan
   $('#scanBar').classList.remove('hidden');
   $('#emptyState').style.display = 'none';
   $('#overviewContent').style.display = 'none';
@@ -775,7 +781,10 @@ function startScan(path) {
   window.api.startScan(path);
 }
 
-$('#btnStopScan').addEventListener('click', () => window.api.stopScan());
+$('#btnStopScan').addEventListener('click', () => {
+  window.api.stopScan();
+  $('#scanBar').classList.add('hidden');
+});
 
 window.api.onScanProgress((p) => {
   $('#scanItems').textContent = p.scannedItems.toLocaleString();
@@ -803,6 +812,7 @@ window.api.onScanError((err) => {
 
 // ─── Populate Overview ───
 async function populateOverview(r) {
+  try {
   // Get real disk info
   const disks = await window.api.getDiskInfo();
   const scanPath = $('#scanPathInput').value || '/';
@@ -825,8 +835,8 @@ async function populateOverview(r) {
 
   // Health bars
   const dupWasted = r.duplicates.reduce((s, [sz, , paths]) => s + sz * (paths.length - 1), 0);
-  const cleanPct = ((cleanable / r.totalUsed) * 100).toFixed(1);
-  const dupPct = ((dupWasted / r.totalUsed) * 100).toFixed(1);
+  const cleanPct = r.totalUsed > 0 ? ((cleanable / r.totalUsed) * 100).toFixed(1) : '0';
+  const dupPct = r.totalUsed > 0 ? ((dupWasted / r.totalUsed) * 100).toFixed(1) : '0';
   const healthColor = pct < 75 ? 'var(--success)' : pct < 90 ? 'var(--warning)' : 'var(--danger)';
 
   $('#healthBars').innerHTML = `
@@ -847,6 +857,7 @@ async function populateOverview(r) {
     const tag = dirPath.match(/cache|temp|log|backup/i) ? '<span class="tag tag-warning">可清理</span>' : '<span class="tag tag-accent">目录</span>';
     return `<tr data-path="${ep}" oncontextmenu="showCtxMenu(event,this.dataset.path)"><td>${i+1}</td><td class="file-path" title="${ep}">${ep}</td><td>${tag}</td><td class="file-size">${formatSize(size)}</td><td><div class="file-bar"><div class="file-bar-fill" style="width:${barPct}%;background:var(--accent)"></div></div></td></tr>`;
   }).join('');
+  } catch (e) { console.error('populateOverview error:', e); }
 }
 
 function drawDonut(extStats, totalUsed) {
@@ -907,7 +918,8 @@ function drawDonut(extStats, totalUsed) {
   // Legend
   legend.innerHTML = top.map(([name, size], i) => {
     const pct = ((size / totalUsed) * 100).toFixed(1);
-    return `<div class="legend-item"><span class="legend-dot" style="background:${colors[i % colors.length]}"></span><span>${name}</span><span class="legend-value">${formatSize(size)} (${pct}%)</span></div>`;
+    const en = escapeHtml(name);
+    return `<div class="legend-item"><span class="legend-dot" style="background:${colors[i % colors.length]}"></span><span>${en}</span><span class="legend-value">${formatSize(size)} (${pct}%)</span></div>`;
   }).join('');
 }
 
@@ -939,7 +951,11 @@ function renderLargeFilesPage() {
     return `<tr data-path="${ep}" oncontextmenu="showCtxMenu(event,this.dataset.path)"><td class="file-name">${name}</td><td class="file-path" title="${ep}">${ep}</td><td>${getExtTag(ext)}</td><td>${date}</td><td class="file-size">${formatSize(size)}</td></tr>`;
   }).join('');
 
-  $('#pageInfo').textContent = `显示 ${start+1}-${Math.min(start+PAGE_SIZE, files.length)} / 共 ${files.length} 项`;
+  if (files.length === 0) {
+    $('#pageInfo').textContent = '共 0 项';
+  } else {
+    $('#pageInfo').textContent = `显示 ${start+1}-${Math.min(start+PAGE_SIZE, files.length)} / 共 ${files.length} 项`;
+  }
   $('#btnPrevPage').disabled = largeFilesPage === 0;
   $('#btnNextPage').disabled = start + PAGE_SIZE >= files.length;
 }
@@ -1005,6 +1021,7 @@ function populateTempFiles(r) {
 
 // ─── History ───
 async function populateHistory() {
+  try {
   const history = await window.api.getHistory();
   $('#historyTitle').textContent = `${history.length} 次扫描`;
 
@@ -1038,33 +1055,38 @@ async function populateHistory() {
     const dotClass = i === 0 ? '' : i < 3 ? 'success' : 'warning';
     return `<div class="timeline-item"><div class="timeline-dot ${dotClass}"></div><div class="timeline-date">${date}</div><div class="timeline-card"><div class="timeline-title">${escapeHtml(e.scanPath)}</div><div class="timeline-desc">扫描完成</div><div class="timeline-stats"><span>文件数: <strong>${e.scannedItems.toLocaleString()}</strong></span><span>耗时: <strong>${e.scanTime.toFixed(1)}s</strong></span><span>可清理: <strong>${formatSize(e.cleanableSize)}</strong></span></div></div></div>`;
   }).join('');
+  } catch (e) { console.error('populateHistory error:', e); }
 }
 
 // ─── Sidebar ───
 async function updateSidebar(r) {
-  const disks = await window.api.getDiskInfo();
-  const scanPath = $('#scanPathInput').value || '/';
-  const diskInfo = disks.find(d => scanPath.startsWith(d.mountpoint)) || disks[0];
-  const total = diskInfo?.total || r.totalUsed;
-  const pct = total > 0 ? ((r.totalUsed / total) * 100).toFixed(0) : '0';
-  $('#footerLabel').textContent = `${pct}% 已使用`;
-  $('#footerBarFill').style.width = pct + '%';
-  $('#footerUsage').textContent = `${formatSize(r.totalUsed)} / ${formatSize(total)}`;
+  try {
+    const disks = await window.api.getDiskInfo();
+    const scanPath = $('#scanPathInput').value || '/';
+    const diskInfo = disks.find(d => scanPath.startsWith(d.mountpoint)) || disks[0];
+    const total = diskInfo?.total || r.totalUsed;
+    const pct = total > 0 ? ((r.totalUsed / total) * 100).toFixed(0) : '0';
+    $('#footerLabel').textContent = `${pct}% 已使用`;
+    $('#footerBarFill').style.width = pct + '%';
+    $('#footerUsage').textContent = `${formatSize(r.totalUsed)} / ${formatSize(total)}`;
+  } catch (e) { console.error('updateSidebar error:', e); }
 }
 
 // ─── Settings ───
 async function loadSettings() {
-  const config = await window.api.getConfig();
-  if (config.theme === 'dark') setTheme('dark');
-  $('#settingTopN').value = config.topN;
-  if (config.duplicateDetection) $('#toggleDup').classList.add('on');
-  if (config.simulateMode) $('#toggleSimulate').classList.add('on');
-  $('#settingApiUrl').value = config.llmApiUrl || '';
-  $('#settingApiKey').value = config.llmApiKey || '';
-  $('#settingModel').value = config.llmModel || '';
-  if (config.lastScanPath) {
-    $('#scanPathInput').value = config.lastScanPath;
-  }
+  try {
+    const config = await window.api.getConfig();
+    if (config.theme === 'dark') setTheme('dark');
+    $('#settingTopN').value = config.topN;
+    if (config.duplicateDetection) $('#toggleDup').classList.add('on');
+    if (config.simulateMode) $('#toggleSimulate').classList.add('on');
+    $('#settingApiUrl').value = config.llmApiUrl || '';
+    $('#settingApiKey').value = config.llmApiKey || '';
+    $('#settingModel').value = config.llmModel || '';
+    if (config.lastScanPath) {
+      $('#scanPathInput').value = config.lastScanPath;
+    }
+  } catch (e) { console.error('loadSettings error:', e); }
 }
 
 $('#settingTopN').addEventListener('change', () => {
@@ -1131,22 +1153,27 @@ window.api.onLLMStream((token) => {
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\n/g, '<br>');
   $('#aiOutput').innerHTML = html;
-  $('#aiOutput').scrollTop = $('#aiOutput').scrollHeight;
+  $('#aiOutput').scrollIntoView({ block: 'end' });
 });
 
 $('#btnTestLLM').addEventListener('click', async () => {
   const btn = $('#btnTestLLM');
   btn.textContent = '测试中...';
   btn.disabled = true;
-  const result = await window.api.testLLM();
-  btn.disabled = false;
-  if (result.ok) {
-    btn.textContent = '连接成功';
-    btn.style.color = 'var(--success)';
-    setTimeout(() => { btn.textContent = '测试连接'; btn.style.color = ''; }, 2000);
-  } else {
+  try {
+    const result = await window.api.testLLM();
+    if (result.ok) {
+      btn.textContent = '连接成功';
+      btn.style.color = 'var(--success)';
+    } else {
+      btn.textContent = '连接失败';
+      btn.style.color = 'var(--danger)';
+    }
+  } catch {
     btn.textContent = '连接失败';
     btn.style.color = 'var(--danger)';
+  } finally {
+    btn.disabled = false;
     setTimeout(() => { btn.textContent = '测试连接'; btn.style.color = ''; }, 2000);
   }
 });
@@ -1201,7 +1228,7 @@ $('#btnHistoryClear').addEventListener('click', async () => {
 // ─── Keyboard shortcuts ───
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F5') { e.preventDefault(); $('#btnScan').click(); }
-  if (e.key === 'Escape') { window.api.stopScan(); }
+  if (e.key === 'Escape') { window.api.stopScan(); $('#scanBar').classList.add('hidden'); }
   if (e.ctrlKey && e.key >= '1' && e.key <= '7') {
     e.preventDefault();
     const tabs = ['overview','large-files','duplicates','temp-files','ai-clean','history','settings'];
@@ -1255,9 +1282,11 @@ loadDiskSelector();
 
 // Set initial scan path
 (async () => {
-  const config = await window.api.getConfig();
-  const homedir = await window.api.getHomedir();
-  $('#scanPathInput').value = config.lastScanPath || homedir;
+  try {
+    const config = await window.api.getConfig();
+    const homedir = await window.api.getHomedir();
+    $('#scanPathInput').value = config.lastScanPath || homedir;
+  } catch (e) { console.error('init scan path error:', e); }
 })();
 
 // Expose for settings toggles

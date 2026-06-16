@@ -8,6 +8,7 @@ const MAX_DEPTH = 30;
 const DUP_MIN_SIZE = 100 * 1024 * 1024; // 100MB
 const TOP_N = 15;
 const PROGRESS_THROTTLE_MS = 150;
+const HASH_TIMEOUT_MS = 30_000; // 30s timeout per file hash
 
 // Windows system dirs to skip
 const WIN_SKIP_DIRS = new Set([
@@ -84,6 +85,11 @@ export class Scanner {
     let duplicates: [number, number, string[]][] = [];
     if (this.enableDup && !this.aborted) {
       duplicates = await this.detectDuplicates();
+    }
+
+    // If aborted, reject so the caller knows results are incomplete
+    if (this.aborted) {
+      throw new Error('扫描已取消');
     }
 
     // Phase 3: Build junk dirs
@@ -279,6 +285,10 @@ export class Scanner {
           hashMap.get(hash)!.push(filePath);
         }
       }
+
+      // Report progress during duplicate detection phase 1
+      const processed = Math.min(i + batchSize, entries.length);
+      this.reportProgress(`[重复检测 1/2] 已哈希 ${processed}/${entries.length} 个大文件`);
     }
 
     // Phase 2: Full hash for matching groups
@@ -289,6 +299,7 @@ export class Scanner {
       if (paths.length < 2 || this.aborted) continue;
 
       for (const filePath of paths) {
+        if (this.aborted) break;
         try {
           const fullHash = await this.hashFileFull(filePath);
           if (!fullHashMap.has(fullHash)) fullHashMap.set(fullHash, []);
@@ -320,7 +331,12 @@ export class Scanner {
     const fd = await fs.promises.open(filePath, 'r');
     try {
       const buf = Buffer.alloc(bytes);
-      const { bytesRead } = await fd.read(buf, 0, bytes, 0);
+      const readPromise = fd.read(buf, 0, bytes, 0);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => reject(new Error('hash timeout')), HASH_TIMEOUT_MS);
+        if (timer.unref) timer.unref();
+      });
+      const { bytesRead } = await Promise.race([readPromise, timeoutPromise]);
       return createHash(Scanner.HASH_ALG).update(buf.subarray(0, bytesRead)).digest('hex');
     } finally {
       await fd.close();
@@ -331,9 +347,22 @@ export class Scanner {
     return new Promise((resolve, reject) => {
       const hash = createHash(Scanner.HASH_ALG);
       const stream = fs.createReadStream(filePath);
+
+      const timer = setTimeout(() => {
+        stream.destroy();
+        reject(new Error('hash timeout'));
+      }, HASH_TIMEOUT_MS);
+      if (timer.unref) timer.unref();
+
       stream.on('data', (chunk) => hash.update(chunk));
-      stream.on('end', () => resolve(hash.digest('hex')));
-      stream.on('error', reject);
+      stream.on('end', () => {
+        clearTimeout(timer);
+        resolve(hash.digest('hex'));
+      });
+      stream.on('error', (err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
     });
   }
 

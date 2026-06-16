@@ -28,10 +28,17 @@ export class ConfigManager {
   private geometry: Record<string, unknown> = {};
 
   constructor() {
-    this.ensureDir();
-    this.config = this.loadConfig();
-    this.history = this.loadHistory();
-    this.geometry = this.loadGeometry();
+    try {
+      this.ensureDir();
+      this.config = this.loadConfig();
+      this.history = this.loadHistory();
+      this.geometry = this.loadGeometry();
+    } catch (e) {
+      console.error('ConfigManager init failed, using defaults:', e);
+      this.config = { ...DEFAULT_CONFIG };
+      this.history = [];
+      this.geometry = {};
+    }
   }
 
   private ensureDir(): void {

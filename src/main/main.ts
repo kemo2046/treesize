@@ -152,8 +152,20 @@ async function getLinuxMounts(): Promise<string[]> {
     for (const line of content.split('\n')) {
       const parts = line.split(' ');
       if (parts.length >= 2) {
-        // Decode kernel octal escapes (e.g. \040 for space)
-        const mountPoint = parts[1].replace(/\\(\d{3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)));
+        // Decode kernel octal escapes as raw bytes, then interpret as UTF-8
+        const raw = parts[1];
+        const bytes: number[] = [];
+        let j = 0;
+        while (j < raw.length) {
+          if (raw[j] === '\\' && j + 3 < raw.length && /^\d{3}$/.test(raw.slice(j + 1, j + 4))) {
+            bytes.push(parseInt(raw.slice(j + 1, j + 4), 8));
+            j += 4;
+          } else {
+            bytes.push(raw.charCodeAt(j));
+            j++;
+          }
+        }
+        const mountPoint = Buffer.from(bytes).toString('utf8');
         if (mountPoint.startsWith('/') && !mountPoint.startsWith('/proc') && !mountPoint.startsWith('/sys') && !mountPoint.startsWith('/dev') && !seen.has(mountPoint)) {
           seen.add(mountPoint);
           mounts.push(mountPoint);
@@ -169,7 +181,23 @@ async function getLinuxMounts(): Promise<string[]> {
 }
 
 // Scan
-ipcMain.on(IPC.SCAN_START, (event, scanPath: string) => {
+ipcMain.on(IPC.SCAN_START, async (event, scanPath: string) => {
+  // Validate scanPath
+  if (!scanPath || typeof scanPath !== 'string') {
+    mainWindow?.webContents.send(IPC.SCAN_ERROR, '请输入有效的扫描路径');
+    return;
+  }
+  try {
+    const stat = await fs.promises.stat(scanPath);
+    if (!stat.isDirectory()) {
+      mainWindow?.webContents.send(IPC.SCAN_ERROR, '路径不是一个目录');
+      return;
+    }
+  } catch {
+    mainWindow?.webContents.send(IPC.SCAN_ERROR, `路径不存在或无法访问: ${scanPath}`);
+    return;
+  }
+
   // Abort any in-progress scan
   currentScanner?.abort();
   currentScanner = null;
@@ -216,6 +244,7 @@ ipcMain.on(IPC.SCAN_START, (event, scanPath: string) => {
 
 ipcMain.on(IPC.SCAN_STOP, () => {
   currentScanner?.abort();
+  currentScanner = null;
 });
 
 // File operations
@@ -308,6 +337,7 @@ ipcMain.on(IPC.LLM_STOP, () => {
   llmGeneration++;
   llmAnalyzer?.stop();
   llmAnalyzer = null;
+  mainWindow?.webContents.send(IPC.LLM_DONE);
 });
 
 ipcMain.handle(IPC.LLM_TEST, async () => {
@@ -362,7 +392,7 @@ ipcMain.handle(IPC.EXPORT_CSV, async (_event, scanResult: ScanResult) => {
     lines.push(`垃圾目录,${formatSizeCSV(size)},${csvEscape(junkPath)},`);
   }
 
-  fs.writeFileSync(result.filePath, lines.join('\n'), 'utf-8');
+  await fs.promises.writeFile(result.filePath, lines.join('\n'), 'utf-8');
 });
 
 ipcMain.handle(IPC.EXPORT_JSON, async (_event, scanResult: ScanResult) => {
@@ -374,7 +404,7 @@ ipcMain.handle(IPC.EXPORT_JSON, async (_event, scanResult: ScanResult) => {
 
   if (result.canceled || !result.filePath) return;
 
-  fs.writeFileSync(result.filePath, JSON.stringify(scanResult, null, 2), 'utf-8');
+  await fs.promises.writeFile(result.filePath, JSON.stringify(scanResult, null, 2), 'utf-8');
 });
 
 ipcMain.handle(IPC.EXPORT_MD, async (_event, content: string) => {
@@ -387,13 +417,14 @@ ipcMain.handle(IPC.EXPORT_MD, async (_event, content: string) => {
   if (result.canceled || !result.filePath) return;
 
   const header = `# AI 磁盘分析报告\n\n导出时间: ${new Date().toLocaleString('zh-CN')}\n\n---\n\n`;
-  fs.writeFileSync(result.filePath, header + content, 'utf-8');
+  await fs.promises.writeFile(result.filePath, header + content, 'utf-8');
 });
 
 // Theme
 ipcMain.handle(IPC.APP_THEME, (_event, theme: 'light' | 'dark') => {
   configManager.set({ theme });
   nativeTheme.themeSource = theme;
+  return configManager.get();
 });
 
 // App lifecycle
@@ -413,6 +444,13 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('will-quit', () => {
+  currentScanner?.abort();
+  currentScanner = null;
+  llmAnalyzer?.stop();
+  llmAnalyzer = null;
+});
+
 // Helpers
 function formatSizeCSV(bytes: number): string {
   if (bytes >= 1024 ** 4) return `${(bytes / 1024 ** 4).toFixed(2)} TB`;
@@ -423,6 +461,10 @@ function formatSizeCSV(bytes: number): string {
 }
 
 function csvEscape(s: string): string {
+  // Prevent CSV injection: prefix formula-triggering characters
+  if (/^[=+\-@\t\r]/.test(s)) {
+    s = "'" + s;
+  }
   if (s.includes(',') || s.includes('"') || s.includes('\n')) {
     return `"${s.replace(/"/g, '""')}"`;
   }

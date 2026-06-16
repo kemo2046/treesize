@@ -107,7 +107,6 @@ export const IPC = {
   // Config
   CONFIG_GET: 'config:get',
   CONFIG_SET: 'config:set',
-  CONFIG_SAVE: 'config:save',
 
   // History
   HISTORY_GET: 'history:get',
@@ -120,7 +119,6 @@ export const IPC = {
 
   // App
   APP_THEME: 'app:theme',
-  APP_QUIT: 'app:quit',
 } as const;
 
 export type Theme = 'light' | 'dark';
