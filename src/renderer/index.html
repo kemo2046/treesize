@@ -581,7 +581,8 @@ $$('.nav-item').forEach(btn => {
 let scanResult = null;
 
 function startScan(path) {
-  if (!path) return;
+  if (!path) { alert('请输入扫描路径'); return; }
+  if (!window.api) { alert('API 未加载，请重启应用'); return; }
   window.api.stopScan();
   scanResult = null;
   $('#scanBar').classList.add('active');
@@ -596,6 +597,13 @@ $('#btnScan').addEventListener('click', () => startScan($('#scanPath').value.tri
 $('#btnRescan').addEventListener('click', () => {
   const path = $('#scanPath').value.trim();
   if (path) startScan(path);
+});
+$('#btnBrowse').addEventListener('click', async () => {
+  const dir = await window.api.showOpenDialog();
+  if (dir) {
+    $('#scanPath').value = dir;
+    startScan(dir);
+  }
 });
 $('#btnStopScan').addEventListener('click', () => {
   window.api.stopScan();

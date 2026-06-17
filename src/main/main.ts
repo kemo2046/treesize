@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, clipboard, nativeTheme } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, clipboard, nativeTheme, dialog } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Scanner, ScanResult, ScanProgress } from './scanner';
@@ -133,6 +133,15 @@ ipcMain.handle(IPC.DISK_INFO, async () => {
   } catch {
     return [];
   }
+});
+
+// Dialog
+ipcMain.handle(IPC.DIALOG_OPEN, async () => {
+  const result = await dialog.showOpenDialog(mainWindow!, {
+    properties: ['openDirectory'],
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
 });
 
 // File operations

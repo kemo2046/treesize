@@ -37,4 +37,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Theme
   setTheme: (theme: string) => ipcRenderer.invoke(IPC.APP_THEME, theme),
+
+  // Dialog
+  showOpenDialog: () => ipcRenderer.invoke(IPC.DIALOG_OPEN),
 });

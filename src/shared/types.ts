@@ -13,6 +13,7 @@ export const IPC = {
   CONFIG_GET: 'config:get',
   CONFIG_SET: 'config:set',
   APP_THEME: 'app:theme',
+  DIALOG_OPEN: 'dialog:open',
 } as const;
 
 export interface ScanResult {
