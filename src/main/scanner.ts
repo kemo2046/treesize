@@ -30,10 +30,11 @@ export interface ScanProgress {
 const MAX_DEPTH = 30;
 const TOP_N = 15;
 const PROGRESS_INTERVAL_MS = 150;
-const STAT_BATCH = 256;
+const STAT_BATCH = 2048;
+const CONCURRENT_DIRS = 64;
 const DUP_MIN_SIZE = 100 * 1024 * 1024; // 100MB
 const HEAD_HASH_SIZE = 64 * 1024; // 64KB
-const HASH_BATCH = 16;
+const HASH_BATCH = 64;
 
 const AGE_THRESHOLDS: [number, string][] = [
   [7, '0-7天'],
@@ -151,8 +152,8 @@ export class Scanner {
   // Duplicate detection
   private sizeGroups: Record<number, string[]> = {};
 
-  private junkPaths: string[] = [];
-  private excludeDirs: string[] = [];
+  private junkPathSet: Set<string> = new Set();
+  private excludeDirSet: Set<string> = new Set();
   private topN: number;
   private enableDupDetection: boolean;
 
@@ -161,8 +162,11 @@ export class Scanner {
     private onProgress?: (p: ScanProgress) => void,
     options: ScannerOptions = {},
   ) {
+    // Increase thread pool for concurrent fs I/O
+    process.env.UV_THREADPOOL_SIZE = String(Math.max(64, parseInt(process.env.UV_THREADPOOL_SIZE || '0') || 0));
+
     this.topN = options.topN ?? TOP_N;
-    this.excludeDirs = (options.excludeDirs || []).map((d) => path.resolve(d));
+    this.excludeDirSet = new Set((options.excludeDirs || []).map((d) => path.resolve(d)));
 
     for (const [, label] of AGE_THRESHOLDS) {
       this.ageGroups[label] = 0;
@@ -174,15 +178,15 @@ export class Scanner {
     for (const fn of junkFns) {
       const p = fn();
       if (p && fs.existsSync(p)) {
-        this.junkPaths.push(path.resolve(p));
+        this.junkPathSet.add(path.resolve(p));
       }
     }
 
     // User-defined custom junk dirs
     for (const d of options.customJunkDirs || []) {
       const resolved = path.resolve(d);
-      if (fs.existsSync(resolved) && !this.junkPaths.includes(resolved)) {
-        this.junkPaths.push(resolved);
+      if (fs.existsSync(resolved)) {
+        this.junkPathSet.add(resolved);
       }
     }
 
@@ -303,43 +307,30 @@ export class Scanner {
 
     let totalSize = 0;
 
+    // Sync readdir + sync stat — eliminates per-file async scheduling overhead
     let entries: fs.Dirent[];
     try {
-      entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+      entries = fs.readdirSync(dirPath, { withFileTypes: true });
     } catch {
       return 0;
     }
 
-    // Separate files from dirs
-    const fileNames: string[] = [];
-    const filePaths: string[] = [];
     const subDirs: string[] = [];
 
-    for (const entry of entries) {
+    for (let i = 0; i < entries.length; i++) {
       if (this.aborted) break;
+      const entry = entries[i];
       if (entry.isSymbolicLink()) continue;
+
       if (entry.isFile()) {
-        fileNames.push(entry.name);
-        filePaths.push(path.join(dirPath, entry.name));
-      } else if (entry.isDirectory()) {
-        subDirs.push(path.join(dirPath, entry.name));
-      }
-    }
+        const fullPath = path.join(dirPath, entry.name);
+        let stat: fs.Stats | null;
+        try {
+          stat = fs.statSync(fullPath);
+        } catch {
+          continue;
+        }
 
-    // Batch stat calls in chunks — parallel I/O within each chunk
-    for (let start = 0; start < filePaths.length; start += STAT_BATCH) {
-      if (this.aborted) break;
-      const end = Math.min(start + STAT_BATCH, filePaths.length);
-      const batch = filePaths.slice(start, end);
-      const stats = await Promise.all(
-        batch.map((fp) => fs.promises.stat(fp).catch(() => null)),
-      );
-
-      for (let i = 0; i < stats.length; i++) {
-        const stat = stats[i];
-        if (!stat) continue;
-
-        const fullPath = batch[i];
         const size = stat.size;
         const mtime = stat.mtimeMs / 1000;
 
@@ -347,18 +338,17 @@ export class Scanner {
         this.totalUsed += size;
         this.scannedItems++;
 
-        // Track large files for duplicate detection
         if (this.enableDupDetection && size >= DUP_MIN_SIZE) {
           if (!this.sizeGroups[size]) this.sizeGroups[size] = [];
           this.sizeGroups[size].push(fullPath);
         }
 
-        const ext = path.extname(fileNames[start + i]).toLowerCase();
+        const ext = path.extname(entry.name).toLowerCase();
         if (ext) {
           this.extStats[ext] = (this.extStats[ext] || 0) + size;
         }
 
-        for (const jp of this.junkPaths) {
+        for (const jp of this.junkPathSet) {
           if (fullPath.startsWith(jp)) {
             this.junkStats[jp] = (this.junkStats[jp] || 0) + size;
             break;
@@ -369,10 +359,12 @@ export class Scanner {
 
         const ageLabel = classifyAge(mtime);
         this.ageGroups[ageLabel] = (this.ageGroups[ageLabel] || 0) + 1;
+      } else if (entry.isDirectory()) {
+        subDirs.push(path.join(dirPath, entry.name));
       }
     }
 
-    // Scan all subdirectories concurrently — no waiting, fire all at once
+    // Scan subdirectories concurrently — async for cross-directory parallelism
     if (subDirs.length > 0 && !this.aborted) {
       const childSizes = await Promise.all(
         subDirs.map((d) => this.scanDir(d, depth + 1)),
@@ -396,7 +388,10 @@ export class Scanner {
     const norm = path.resolve(dirPath);
     const skipDirs = process.platform === 'win32' ? SKIP_DIRS_WIN : SKIP_DIRS_UNIX;
     if (skipDirs.has(norm)) return true;
-    return this.excludeDirs.some((ex) => norm.startsWith(ex));
+    for (const ex of this.excludeDirSet) {
+      if (norm.startsWith(ex)) return true;
+    }
+    return false;
   }
 
   private addToHeap<T extends [number, ...unknown[]]>(
