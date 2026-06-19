@@ -1,15 +1,42 @@
 {
   "name": "treesize",
   "version": "4.0.0",
-  "description": "磁盘空间分析工具",
+  "description": "跨平台磁盘空间分析工具",
+  "author": "kemo2046",
+  "license": "MIT",
   "main": "dist/main/main/main.js",
   "scripts": {
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "vite build --config src/renderer/vite.config.ts",
     "start": "electron .",
-    "test:scanner": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.js --testPathPattern=scanner",
-    "make:win": "npm run build && npx electron-builder --win zip --x64"
+    "test:scanner": "npm run build:main && node test-scanner.js",
+    "make:win": "npm run build && npx electron-builder --win zip --x64",
+    "make:linux": "npm run build && npx electron-builder --linux AppImage --x64",
+    "make:mac": "npm run build && npx electron-builder --mac dmg --x64"
+  },
+  "build": {
+    "appId": "com.treesize.disk-analyzer",
+    "productName": "磁盘空间分析器",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": ["zip"],
+      "icon": null
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.utilities"
+    }
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

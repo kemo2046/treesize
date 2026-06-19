@@ -5,13 +5,29 @@ import * as os from 'os';
 const APP_DIR = path.join(os.homedir(), '.disk_analyzer');
 const CONFIG_FILE = path.join(APP_DIR, 'config.json');
 const GEOMETRY_FILE = path.join(APP_DIR, 'geometry.json');
+const HISTORY_FILE = path.join(APP_DIR, 'history.json');
+const MAX_HISTORY = 50;
 
 export interface AppConfig {
   excludeDirs: string[];
   customJunkDirs: string[];
   lastScanPath: string;
   topN: number;
+  duplicateDetection: boolean;
   theme: 'light' | 'dark';
+  llmApiUrl: string;
+  llmApiKey: string;
+  llmModel: string;
+  llmTemperature: number;
+}
+
+export interface HistoryEntry {
+  timestamp: number;
+  scanPath: string;
+  totalUsed: number;
+  scanTime: number;
+  scannedItems: number;
+  junkSize: number;
 }
 
 const DEFAULT_CONFIG: AppConfig = {
@@ -19,7 +35,12 @@ const DEFAULT_CONFIG: AppConfig = {
   customJunkDirs: [],
   lastScanPath: '',
   topN: 15,
+  duplicateDetection: false,
   theme: 'light',
+  llmApiUrl: '',
+  llmApiKey: '',
+  llmModel: '',
+  llmTemperature: 0.3,
 };
 
 export interface WindowGeometry {
@@ -82,6 +103,29 @@ export class ConfigManager {
       fs.writeFileSync(GEOMETRY_FILE, JSON.stringify(geo));
     } catch (e) {
       console.error('Failed to save geometry:', e);
+    }
+  }
+
+  getHistory(): HistoryEntry[] {
+    try {
+      if (fs.existsSync(HISTORY_FILE)) {
+        return JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  }
+
+  addHistory(entry: HistoryEntry): void {
+    const history = this.getHistory();
+    history.unshift(entry);
+    if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+    try {
+      fs.mkdirSync(APP_DIR, { recursive: true });
+      fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+    } catch (e) {
+      console.error('Failed to save history:', e);
     }
   }
 

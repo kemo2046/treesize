@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import * as crypto from 'crypto';
 
 // ---- Types ----
 
@@ -11,6 +12,7 @@ export interface ScanResult {
   extStats: [string, number][];
   ageGroups: Record<string, number>;
   dirSizeCache: Record<string, number>;
+  duplicates: [number, string[]][];
   totalUsed: number;
   scanTime: number;
   scannedItems: number;
@@ -28,6 +30,10 @@ export interface ScanProgress {
 const MAX_DEPTH = 30;
 const TOP_N = 15;
 const PROGRESS_INTERVAL_MS = 150;
+const STAT_BATCH = 256;
+const DUP_MIN_SIZE = 100 * 1024 * 1024; // 100MB
+const HEAD_HASH_SIZE = 64 * 1024; // 64KB
+const HASH_BATCH = 16;
 
 const AGE_THRESHOLDS: [number, string][] = [
   [7, '0-7天'],
@@ -39,7 +45,7 @@ const AGE_THRESHOLDS: [number, string][] = [
   [Infinity, '2年+'],
 ];
 
-const SKIP_DIRS = new Set([
+const SKIP_DIRS_WIN = new Set([
   'C:\\Documents and Settings',
   'C:\\System Volume Information',
   'C:\\$Recycle.Bin',
@@ -47,13 +53,35 @@ const SKIP_DIRS = new Set([
   'C:\\Windows\\Installer',
 ]);
 
-const JUNK_PATHS_WIN = [
+const SKIP_DIRS_UNIX = new Set([
+  '/proc', '/sys', '/dev', '/run', '/snap',
+]);
+
+const JUNK_PATHS_WIN: (() => string)[] = [
   () => process.env.TEMP || '',
   () => process.env.TMP || '',
   () => 'C:\\Windows\\Temp',
   () => 'C:\\Windows\\Prefetch',
   () => 'C:\\Windows\\SoftwareDistribution\\Download',
   () => path.join(os.homedir(), 'AppData', 'Local', 'Temp'),
+];
+
+const JUNK_PATHS_LINUX: (() => string)[] = [
+  () => '/tmp',
+  () => '/var/tmp',
+  () => '/var/cache',
+  () => '/var/log',
+  () => path.join(os.homedir(), '.cache'),
+  () => path.join(os.homedir(), '.local', 'share', 'Trash'),
+  () => path.join(os.homedir(), '.thumbnails'),
+];
+
+const JUNK_PATHS_MAC: (() => string)[] = [
+  () => '/tmp',
+  () => '/private/var/tmp',
+  () => path.join(os.homedir(), 'Library', 'Caches'),
+  () => path.join(os.homedir(), '.Trash'),
+  () => path.join(os.homedir(), 'Library', 'Logs'),
 ];
 
 // ---- Helpers ----
@@ -64,6 +92,41 @@ function classifyAge(mtime: number): string {
     if (days < threshold) return label;
   }
   return '2年+';
+}
+
+async function hashFileHead(filePath: string): Promise<string | null> {
+  try {
+    const fd = await fs.promises.open(filePath, 'r');
+    try {
+      const buf = Buffer.alloc(HEAD_HASH_SIZE);
+      const { bytesRead } = await fd.read(buf, 0, HEAD_HASH_SIZE, 0);
+      return crypto.createHash('sha256').update(buf.subarray(0, bytesRead)).digest('hex');
+    } finally {
+      await fd.close();
+    }
+  } catch {
+    return null;
+  }
+}
+
+async function hashFileFull(filePath: string): Promise<string | null> {
+  try {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath, { highWaterMark: 1024 * 1024 });
+    for await (const chunk of stream) {
+      hash.update(chunk);
+    }
+    return hash.digest('hex');
+  } catch {
+    return null;
+  }
+}
+
+export interface ScannerOptions {
+  excludeDirs?: string[];
+  customJunkDirs?: string[];
+  topN?: number;
+  enableDupDetection?: boolean;
 }
 
 // ---- Scanner class ----
@@ -85,24 +148,45 @@ export class Scanner {
   private ageGroups: Record<string, number> = {};
   private dirSizeCache: Record<string, number> = {};
 
+  // Duplicate detection
+  private sizeGroups: Record<number, string[]> = {};
+
   private junkPaths: string[] = [];
   private excludeDirs: string[] = [];
+  private topN: number;
+  private enableDupDetection: boolean;
 
   constructor(
     private targetPath: string,
     private onProgress?: (p: ScanProgress) => void,
+    options: ScannerOptions = {},
   ) {
-    // Init age groups
+    this.topN = options.topN ?? TOP_N;
+    this.excludeDirs = (options.excludeDirs || []).map((d) => path.resolve(d));
+
     for (const [, label] of AGE_THRESHOLDS) {
       this.ageGroups[label] = 0;
     }
-    // Init junk paths (Windows)
-    for (const fn of JUNK_PATHS_WIN) {
+
+    // Platform-aware junk paths
+    const platform = process.platform;
+    const junkFns = platform === 'win32' ? JUNK_PATHS_WIN : platform === 'darwin' ? JUNK_PATHS_MAC : JUNK_PATHS_LINUX;
+    for (const fn of junkFns) {
       const p = fn();
       if (p && fs.existsSync(p)) {
         this.junkPaths.push(path.resolve(p));
       }
     }
+
+    // User-defined custom junk dirs
+    for (const d of options.customJunkDirs || []) {
+      const resolved = path.resolve(d);
+      if (fs.existsSync(resolved) && !this.junkPaths.includes(resolved)) {
+        this.junkPaths.push(resolved);
+      }
+    }
+
+    this.enableDupDetection = options.enableDupDetection ?? false;
   }
 
   abort(): void {
@@ -113,40 +197,99 @@ export class Scanner {
     this.startTime = Date.now();
     await this.scanDir(this.targetPath, 0);
 
+    // Detect duplicates if enabled
+    let duplicates: [number, string[]][] = [];
+    if (this.enableDupDetection && !this.aborted) {
+      duplicates = await this.detectDuplicates();
+    }
+
     const elapsed = (Date.now() - this.startTime) / 1000;
 
-    // Sort heaps descending
     this.dirHeap.sort((a, b) => b[0] - a[0]);
     this.fileHeap.sort((a, b) => b[0] - a[0]);
 
-    // Sort ext stats
     const extEntries = Object.entries(this.extStats)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 15);
+      .slice(0, this.topN);
 
-    // Sort junk dirs
     const junkEntries: [string, number][] = Object.entries(this.junkStats)
       .filter(([, size]) => size > 0)
       .sort((a, b) => b[1] - a[1]);
 
     return {
-      topDirs: this.dirHeap.slice(0, TOP_N).map(([size, p]) => [p, size]),
-      topFiles: this.fileHeap.slice(0, TOP_N).map(([size, p, m]) => [p, size, m]),
+      topDirs: this.dirHeap.slice(0, this.topN).map(([size, p]) => [p, size]),
+      topFiles: this.fileHeap.slice(0, this.topN).map(([size, p, m]) => [p, size, m]),
       junkDirs: junkEntries,
       extStats: extEntries,
       ageGroups: { ...this.ageGroups },
       dirSizeCache: { ...this.dirSizeCache },
+      duplicates,
       totalUsed: this.totalUsed,
       scanTime: elapsed,
       scannedItems: this.scannedItems,
     };
   }
 
+  private async detectDuplicates(): Promise<[number, string[]][]> {
+    // Only consider size groups with 2+ files
+    const candidates = Object.entries(this.sizeGroups)
+      .filter(([, paths]) => paths.length >= 2)
+      .map(([size, paths]) => [Number(size), paths] as [number, string[]]);
+
+    if (candidates.length === 0) return [];
+
+    // Phase 1: Head hash
+    const headHashMap: Map<string, [number, string][]> = new Map();
+    for (const [size, paths] of candidates) {
+      if (this.aborted) break;
+      for (let i = 0; i < paths.length; i += HASH_BATCH) {
+        const batch = paths.slice(i, i + HASH_BATCH);
+        const hashes = await Promise.all(batch.map((p) => hashFileHead(p)));
+        for (let j = 0; j < hashes.length; j++) {
+          const h = hashes[j];
+          if (!h) continue;
+          const key = `${size}:${h}`;
+          if (!headHashMap.has(key)) headHashMap.set(key, []);
+          headHashMap.get(key)!.push([size, batch[j]]);
+        }
+      }
+    }
+
+    // Phase 2: Full hash for head-hash matches
+    const dupGroups: [number, string[]][] = [];
+    for (const [, entries] of headHashMap) {
+      if (this.aborted) break;
+      if (entries.length < 2) continue;
+
+      const fullHashMap: Map<string, string[]> = new Map();
+      for (let i = 0; i < entries.length; i += HASH_BATCH) {
+        const batch = entries.slice(i, i + HASH_BATCH);
+        const hashes = await Promise.all(batch.map(([, p]) => hashFileFull(p)));
+        for (let j = 0; j < hashes.length; j++) {
+          const h = hashes[j];
+          if (!h) continue;
+          if (!fullHashMap.has(h)) fullHashMap.set(h, []);
+          fullHashMap.get(h)!.push(batch[j][1]);
+        }
+      }
+
+      for (const [, paths] of fullHashMap) {
+        if (paths.length >= 2) {
+          dupGroups.push([entries[0][0], paths]);
+        }
+      }
+    }
+
+    // Sort by wasted space descending
+    dupGroups.sort((a, b) => b[0] * (b[1].length - 1) - a[0] * (a[1].length - 1));
+    return dupGroups;
+  }
+
   private async scanDir(dirPath: string, depth: number): Promise<number> {
     if (this.aborted || depth > MAX_DEPTH) return 0;
     if (this.shouldExclude(dirPath)) return 0;
 
-    // Report progress
+    // Report progress (throttled)
     const now = Date.now();
     if (now - this.lastProgressTime > PROGRESS_INTERVAL_MS) {
       this.lastProgressTime = now;
@@ -167,57 +310,75 @@ export class Scanner {
       return 0;
     }
 
+    // Separate files from dirs
+    const fileNames: string[] = [];
+    const filePaths: string[] = [];
+    const subDirs: string[] = [];
+
     for (const entry of entries) {
       if (this.aborted) break;
+      if (entry.isSymbolicLink()) continue;
+      if (entry.isFile()) {
+        fileNames.push(entry.name);
+        filePaths.push(path.join(dirPath, entry.name));
+      } else if (entry.isDirectory()) {
+        subDirs.push(path.join(dirPath, entry.name));
+      }
+    }
 
-      const fullPath = path.join(dirPath, entry.name);
+    // Batch stat calls in chunks — parallel I/O within each chunk
+    for (let start = 0; start < filePaths.length; start += STAT_BATCH) {
+      if (this.aborted) break;
+      const end = Math.min(start + STAT_BATCH, filePaths.length);
+      const batch = filePaths.slice(start, end);
+      const stats = await Promise.all(
+        batch.map((fp) => fs.promises.stat(fp).catch(() => null)),
+      );
 
-      try {
-        // Skip symlinks
-        if (entry.isSymbolicLink()) continue;
+      for (let i = 0; i < stats.length; i++) {
+        const stat = stats[i];
+        if (!stat) continue;
 
-        if (entry.isFile()) {
-          let size = 0;
-          let mtime = 0;
-          try {
-            const stat = await fs.promises.stat(fullPath);
-            size = stat.size;
-            mtime = stat.mtimeMs / 1000;
-          } catch {
-            continue;
-          }
+        const fullPath = batch[i];
+        const size = stat.size;
+        const mtime = stat.mtimeMs / 1000;
 
-          totalSize += size;
-          this.totalUsed += size;
-          this.scannedItems++;
+        totalSize += size;
+        this.totalUsed += size;
+        this.scannedItems++;
 
-          // Extension stats
-          const ext = path.extname(entry.name).toLowerCase();
-          if (ext) {
-            this.extStats[ext] = (this.extStats[ext] || 0) + size;
-          }
-
-          // Junk stats
-          for (const jp of this.junkPaths) {
-            if (fullPath.startsWith(jp)) {
-              this.junkStats[jp] = (this.junkStats[jp] || 0) + size;
-              break;
-            }
-          }
-
-          // Top files heap
-          this.addToHeap(this.fileHeap, [size, fullPath, mtime], TOP_N);
-
-          // Age group
-          const ageLabel = classifyAge(mtime);
-          this.ageGroups[ageLabel] = (this.ageGroups[ageLabel] || 0) + 1;
-
-        } else if (entry.isDirectory()) {
-          const subSize = await this.scanDir(fullPath, depth + 1);
-          totalSize += subSize;
+        // Track large files for duplicate detection
+        if (this.enableDupDetection && size >= DUP_MIN_SIZE) {
+          if (!this.sizeGroups[size]) this.sizeGroups[size] = [];
+          this.sizeGroups[size].push(fullPath);
         }
-      } catch {
-        // Skip inaccessible entries
+
+        const ext = path.extname(fileNames[start + i]).toLowerCase();
+        if (ext) {
+          this.extStats[ext] = (this.extStats[ext] || 0) + size;
+        }
+
+        for (const jp of this.junkPaths) {
+          if (fullPath.startsWith(jp)) {
+            this.junkStats[jp] = (this.junkStats[jp] || 0) + size;
+            break;
+          }
+        }
+
+        this.addToHeap(this.fileHeap, [size, fullPath, mtime], this.topN);
+
+        const ageLabel = classifyAge(mtime);
+        this.ageGroups[ageLabel] = (this.ageGroups[ageLabel] || 0) + 1;
+      }
+    }
+
+    // Scan all subdirectories concurrently — no waiting, fire all at once
+    if (subDirs.length > 0 && !this.aborted) {
+      const childSizes = await Promise.all(
+        subDirs.map((d) => this.scanDir(d, depth + 1)),
+      );
+      for (const s of childSizes) {
+        totalSize += s;
       }
     }
 
@@ -225,7 +386,7 @@ export class Scanner {
     const normPath = path.resolve(dirPath);
     this.dirSizeCache[normPath] = totalSize;
     if (totalSize > 0) {
-      this.addToHeap(this.dirHeap, [totalSize, dirPath], TOP_N);
+      this.addToHeap(this.dirHeap, [totalSize, dirPath], this.topN);
     }
 
     return totalSize;
@@ -233,7 +394,8 @@ export class Scanner {
 
   private shouldExclude(dirPath: string): boolean {
     const norm = path.resolve(dirPath);
-    if (SKIP_DIRS.has(norm)) return true;
+    const skipDirs = process.platform === 'win32' ? SKIP_DIRS_WIN : SKIP_DIRS_UNIX;
+    if (skipDirs.has(norm)) return true;
     return this.excludeDirs.some((ex) => norm.startsWith(ex));
   }
 
@@ -247,9 +409,7 @@ export class Scanner {
     } else if (item[0] > heap[0][0]) {
       heap[0] = item;
     }
-    // Keep heap property (min at top) — we use sort later, so just maintain partial order
     if (heap.length > 1) {
-      // Bubble down the new root to keep min-heap
       let i = 0;
       while (true) {
         let smallest = i;
@@ -272,27 +432,17 @@ if (require.main === module) {
   console.log(`Scanning: ${path.resolve(target)}`);
   const scanner = new Scanner(target, (p) => {
     process.stdout.write(`\r${p.scannedItems} files, ${p.currentPath.slice(0, 60).padEnd(60)}`);
-  });
+  }, { enableDupDetection: true });
   scanner.scan().then((result) => {
     console.log('\n');
     console.log(`Total used: ${formatSize(result.totalUsed)}`);
     console.log(`Files scanned: ${result.scannedItems}`);
     console.log(`Scan time: ${result.scanTime.toFixed(2)}s`);
-    console.log('\nTop directories:');
-    for (const [dir, size] of result.topDirs) {
-      console.log(`  ${formatSize(size).padStart(12)}  ${dir}`);
-    }
-    console.log('\nTop files:');
-    for (const [file, size] of result.topFiles) {
-      console.log(`  ${formatSize(size).padStart(12)}  ${file}`);
-    }
-    console.log('\nExtension stats:');
-    for (const [ext, size] of result.extStats) {
-      console.log(`  ${formatSize(size).padStart(12)}  ${ext}`);
-    }
-    console.log('\nAge groups:');
-    for (const [label, count] of Object.entries(result.ageGroups)) {
-      if (count > 0) console.log(`  ${label}: ${count} files`);
+    if (result.duplicates.length > 0) {
+      console.log(`\nDuplicate groups: ${result.duplicates.length}`);
+      for (const [size, paths] of result.duplicates.slice(0, 5)) {
+        console.log(`  ${formatSize(size)} × ${paths.length} copies`);
+      }
     }
   });
 }

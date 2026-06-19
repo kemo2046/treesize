@@ -116,6 +116,7 @@ table { border-collapse: collapse; width: 100%; }
   align-items: center;
   gap: 10px;
   border-bottom: 1px solid oklch(25% 0.01 250);
+  -webkit-app-region: drag;
 }
 .sidebar-logo svg { flex-shrink: 0; }
 .sidebar-logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
@@ -159,14 +160,25 @@ table { border-collapse: collapse; width: 100%; }
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 24px; border-bottom: 1px solid var(--border);
+  padding: 0 8px 0 16px; height: 40px; border-bottom: 1px solid var(--border);
   background: var(--bg-raised); gap: 12px; flex-shrink: 0;
+  -webkit-app-region: drag; user-select: none;
   transition: background var(--transition), border-color var(--transition);
 }
-.topbar-left { display: flex; align-items: center; gap: 12px; }
-.topbar-title { font-size: 16px; font-weight: 600; font-family: var(--font-display); letter-spacing: -0.02em; }
-.topbar-sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
-.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.topbar-left { display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.topbar-title { font-size: 14px; font-weight: 600; font-family: var(--font-display); letter-spacing: -0.02em; }
+.topbar-sub { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+.topbar-actions { display: flex; align-items: center; gap: 6px; -webkit-app-region: no-drag; }
+.topbar-center { flex: 1; -webkit-app-region: drag; }
+.win-controls { display: flex; align-items: center; -webkit-app-region: no-drag; margin-left: auto; }
+.win-btn {
+  width: 36px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent; cursor: pointer; color: var(--fg-secondary);
+  transition: background var(--transition), color var(--transition);
+}
+.win-btn:hover { background: var(--surface-alt); color: var(--fg); }
+.win-btn.close:hover { background: var(--danger); color: #fff; }
+.win-btn svg { width: 14px; height: 14px; }
 
 /* ═══════════ BUTTONS ═══════════ */
 .btn {
@@ -333,6 +345,91 @@ table { border-collapse: collapse; width: 100%; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ═══════════ CONTEXT MENU ═══════════ */
+.context-menu {
+  position: fixed; z-index: 9999; min-width: 180px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+  padding: 4px; display: none;
+}
+.context-menu.visible { display: block; }
+.context-menu-item {
+  display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+  font-size: 12px; border-radius: var(--radius-sm); cursor: pointer;
+  color: var(--fg); transition: background var(--transition);
+}
+.context-menu-item:hover { background: var(--surface-alt); }
+.context-menu-item.danger { color: var(--danger); }
+.context-menu-item.danger:hover { background: var(--danger-soft); }
+.context-menu-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.7; }
+.context-menu-sep { height: 1px; background: var(--border); margin: 4px 8px; }
+
+/* ═══════════ DUPLICATE GROUPS ═══════════ */
+.dup-group { margin-bottom: 12px; }
+.dup-group-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer;
+  transition: background var(--transition);
+}
+.dup-group-header:hover { background: var(--border); }
+.dup-group-header .dup-name { flex: 1; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dup-group-header .dup-size { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.dup-group-body { display: none; padding: 8px 0 0; }
+.dup-group.open .dup-group-body { display: block; }
+.dup-group-header .dup-arrow { transition: transform 0.2s; }
+.dup-group.open .dup-group-header .dup-arrow { transform: rotate(90deg); }
+
+/* ═══════════ HISTORY ═══════════ */
+.history-chart-wrap { height: 180px; position: relative; }
+.history-chart-wrap canvas { width: 100%; height: 100%; }
+
+/* ═══════════ TREE VIEW ═══════════ */
+.tree-root { font-size: 12px; }
+.tree-node {
+  display: flex; align-items: center; padding: 3px 8px;
+  cursor: pointer; border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.tree-node:hover { background: var(--surface-alt); }
+.tree-node.active { background: var(--accent-soft); }
+.tree-arrow {
+  width: 16px; height: 16px; flex-shrink: 0; display: flex;
+  align-items: center; justify-content: center;
+  transition: transform 0.15s; color: var(--muted); cursor: pointer;
+}
+.tree-arrow.expanded { transform: rotate(90deg); }
+.tree-arrow.hidden { visibility: hidden; }
+.tree-icon { width: 16px; height: 16px; flex-shrink: 0; margin-right: 6px; }
+.tree-icon.folder { color: var(--warning); }
+.tree-icon.file { color: var(--muted); }
+.tree-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-size { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-left: 8px; white-space: nowrap; }
+.tree-bar { width: 60px; height: 4px; background: var(--border); border-radius: 2px; margin-left: 8px; flex-shrink: 0; }
+.tree-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+.tree-children { display: none; padding-left: 18px; }
+.tree-children.visible { display: block; }
+.tree-placeholder { padding: 3px 8px; color: var(--muted); font-size: 11px; font-style: italic; }
+
+/* ═══════════ AI OUTPUT ═══════════ */
+#llmOutput {
+  min-height: 300px; max-height: 600px; overflow-y: auto;
+  padding: 16px; background: var(--surface-alt); border-radius: var(--radius-sm);
+  font-size: 13px; line-height: 1.7; word-wrap: break-word;
+  font-family: var(--font-body);
+}
+#llmOutput h1 { font-size: 16px; font-weight: 700; margin: 16px 0 6px; color: var(--accent); }
+#llmOutput h2 { font-size: 15px; font-weight: 600; margin: 14px 0 4px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+#llmOutput h3 { font-size: 14px; font-weight: 600; margin: 12px 0 4px; }
+#llmOutput p { margin: 4px 0; }
+#llmOutput ul { margin: 6px 0; padding-left: 20px; }
+#llmOutput li { margin: 2px 0; }
+#llmOutput pre { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; overflow-x: auto; margin: 8px 0; }
+#llmOutput code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 4px; border-radius: 3px; }
+#llmOutput pre code { background: none; padding: 0; }
+#llmOutput hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+#llmOutput strong { font-weight: 600; color: var(--fg); }
 </style>
 </head>
 <body>
@@ -360,11 +457,28 @@ table { border-collapse: collapse; width: 100%; }
       <span>大文件</span>
       <span class="nav-badge" id="badgeLargeFiles" style="display:none">0</span>
     </button>
+    <button class="nav-item" data-tab="duplicates">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M3 16V4a2 2 0 0 1 2-2h12"/></svg>
+      <span>重复文件</span>
+      <span class="nav-badge" id="badgeDuplicates" style="display:none">0</span>
+    </button>
     <button class="nav-item" data-tab="temp-files">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
       <span>临时文件</span>
     </button>
+    <button class="nav-item" data-tab="tree">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10H3"/><path d="M21 6H3"/><path d="M21 14H3"/><path d="M17 18H3"/></svg>
+      <span>目录树</span>
+    </button>
     <div class="sidebar-section">工具</div>
+    <button class="nav-item" data-tab="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>历史记录</span>
+    </button>
+    <button class="nav-item" data-tab="ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22"/><path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93"/><path d="M8.56 13a8 8 0 0 0-2.3 4.29"/><path d="M15.44 13a8 8 0 0 1 2.3 4.29"/><circle cx="12" cy="6" r="1"/></svg>
+      <span>AI 分析</span>
+    </button>
     <button class="nav-item" data-tab="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span>设置</span>
@@ -385,6 +499,7 @@ table { border-collapse: collapse; width: 100%; }
       <span class="topbar-title" id="topbarTitle">概览</span>
       <span class="topbar-sub" id="topbarSub">请选择路径开始扫描</span>
     </div>
+    <div class="topbar-center"></div>
     <div class="topbar-actions">
       <button class="btn btn-ghost" id="themeToggle">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -393,6 +508,17 @@ table { border-collapse: collapse; width: 100%; }
       <button class="btn btn-primary" id="btnRescan">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
         重新扫描
+      </button>
+    </div>
+    <div class="win-controls">
+      <button class="win-btn" id="btnMinimize" title="最小化">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><line x1="2" y1="6" x2="10" y2="6"/></svg>
+      </button>
+      <button class="win-btn" id="btnMaximize" title="最大化">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="2" width="8" height="8" rx="1"/></svg>
+      </button>
+      <button class="win-btn close" id="btnClose" title="关闭">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
       </button>
     </div>
   </header>
@@ -463,7 +589,7 @@ table { border-collapse: collapse; width: 100%; }
         </div>
         <div style="max-height:600px; overflow-y:auto;">
           <table class="data-table" id="tableLargeFiles">
-            <thead><tr><th style="width:40px">#</th><th>文件名</th><th>路径</th><th style="width:80px">类型</th><th style="width:120px" class="size-col">大小</th></tr></thead>
+            <thead><tr><th style="width:40px">#</th><th>文件名</th><th>路径</th><th style="width:80px">类型</th><th style="width:100px">修改日期</th><th style="width:120px" class="size-col">大小</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -486,6 +612,96 @@ table { border-collapse: collapse; width: 100%; }
       </div>
     </div>
 
+    <!-- ═══════ TAB: DUPLICATES ═══════ -->
+    <div class="tab-panel" id="panel-duplicates">
+      <div id="dupContent">
+        <div class="empty-state" id="dupEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M3 16V4a2 2 0 0 1 2-2h12"/></svg>
+          <div class="empty-state-text">未检测到重复文件</div>
+          <div class="empty-state-sub">请在设置中开启重复文件检测后重新扫描</div>
+        </div>
+        <div id="dupResults" style="display:none">
+          <div class="grid-3" id="dupStatCards"></div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">重复文件分组</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn btn-ghost btn-sm" id="dupExpandAll">全部展开</button>
+                <button class="btn btn-ghost btn-sm" id="dupCollapseAll">全部折叠</button>
+              </div>
+            </div>
+            <div id="dupGroups"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: HISTORY ═══════ -->
+    <div class="tab-panel" id="panel-history">
+      <div id="historyContent">
+        <div class="empty-state" id="historyEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div class="empty-state-text">暂无扫描历史</div>
+          <div class="empty-state-sub">完成扫描后将自动记录</div>
+        </div>
+        <div id="historyResults" style="display:none">
+          <div class="grid-3" id="historyStatCards"></div>
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header"><div class="card-title">扫描趋势</div></div>
+            <div class="history-chart-wrap">
+              <canvas id="historyCanvas"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">扫描历史</div></div>
+            <div style="max-height:400px; overflow-y:auto;">
+              <table class="data-table" id="tableHistory">
+                <thead><tr><th>时间</th><th>扫描路径</th><th style="width:100px" class="size-col">文件数</th><th style="width:120px" class="size-col">总大小</th><th style="width:80px" class="size-col">耗时</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: TREE ═══════ -->
+    <div class="tab-panel" id="panel-tree">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">目录树浏览</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="treeSearch" placeholder="搜索目录..." style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-alt);font-size:12px;width:180px;" />
+            <button class="btn btn-ghost btn-sm" id="treeExpandAll">全部展开</button>
+            <button class="btn btn-ghost btn-sm" id="treeCollapseAll">全部折叠</button>
+          </div>
+        </div>
+        <div id="treeContainer" style="max-height:600px;overflow-y:auto;">
+          <div class="empty-state" id="treeEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <div class="empty-state-text">请先扫描以生成目录树</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: AI ═══════ -->
+    <div class="tab-panel" id="panel-ai">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">AI 智能分析</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-primary btn-sm" id="btnLlmAnalyze">开始分析</button>
+            <button class="btn btn-ghost btn-sm" id="btnLlmStop" disabled>停止</button>
+            <button class="btn btn-ghost btn-sm" id="btnLlmClear">清空</button>
+            <button class="btn btn-ghost btn-sm" id="btnLlmCopy">复制结果</button>
+            <span id="llmStatus" style="font-size:11px;color:var(--muted);"></span>
+          </div>
+        </div>
+        <div id="llmOutput"></div>
+      </div>
+    </div>
+
     <!-- ═══════ TAB: SETTINGS ═══════ -->
     <div class="tab-panel" id="panel-settings">
       <div class="settings-group">
@@ -505,6 +721,33 @@ table { border-collapse: collapse; width: 100%; }
           <div><div class="settings-row-label">排除目录</div><div class="settings-row-desc">每行一个路径，扫描时跳过</div></div>
           <textarea id="settingsExcludeDirs" rows="3" style="width:300px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-alt);font-size:12px;resize:vertical;"></textarea>
         </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">重复文件检测</div><div class="settings-row-desc">扫描时检测 ≥100MB 的重复文件（会增加扫描时间）</div></div>
+          <div class="toggle" id="settingsDupToggle"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">自定义可清理目录</div><div class="settings-row-desc">每行一个路径，作为额外的可清理目录</div></div>
+          <textarea id="settingsCustomJunkDirs" rows="3" style="width:300px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-alt);font-size:12px;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">LLM 分析配置</div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">API 地址</div><div class="settings-row-desc">OpenAI 兼容 API 地址</div></div>
+          <input type="text" id="settingsLlmUrl" placeholder="https://api.openai.com/v1" style="width:300px" />
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">API Key</div><div class="settings-row-desc">API 密钥（可选）</div></div>
+          <input type="text" id="settingsLlmKey" placeholder="sk-..." style="width:300px" />
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">模型名称</div><div class="settings-row-desc">例如 gpt-4o-mini, deepseek-chat</div></div>
+          <input type="text" id="settingsLlmModel" placeholder="gpt-4o-mini" style="width:200px" />
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">Temperature</div><div class="settings-row-desc">生成温度 0-2，越低越确定</div></div>
+          <input type="number" id="settingsLlmTemp" value="0.3" min="0" max="2" step="0.1" style="width:80px" />
+        </div>
       </div>
       <div class="settings-group">
         <div class="settings-group-title">关于</div>
@@ -514,6 +757,31 @@ table { border-collapse: collapse; width: 100%; }
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="context-menu" id="contextMenu">
+  <div class="context-menu-item" data-action="open">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    <span>打开</span>
+  </div>
+  <div class="context-menu-item" data-action="openDir">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <span>打开所在文件夹</span>
+  </div>
+  <div class="context-menu-item" data-action="copyPath">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <span>复制路径</span>
+  </div>
+  <div class="context-menu-sep"></div>
+  <div class="context-menu-item danger" data-action="trash">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+    <span>移至回收站</span>
+  </div>
+  <div class="context-menu-item danger" data-action="delete">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <span>永久删除</span>
   </div>
 </div>
 
@@ -539,6 +807,78 @@ function escapeHtml(s) {
   return d.innerHTML;
 }
 
+function renderMarkdown(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  const out = [];
+  let inCode = false;
+  let codeBuf = [];
+  let inList = false;
+
+  for (const line of lines) {
+    // Code fence
+    if (line.trimStart().startsWith('```')) {
+      if (inCode) {
+        out.push('<pre><code>' + escapeHtml(codeBuf.join('\n')) + '</code></pre>');
+        codeBuf = [];
+        inCode = false;
+      } else {
+        if (inList) { out.push('</ul>'); inList = false; }
+        inCode = true;
+      }
+      continue;
+    }
+    if (inCode) { codeBuf.push(line); continue; }
+
+    // Close list if line is not a list item
+    if (inList && !line.match(/^\s*[-*]\s/)) {
+      out.push('</ul>');
+      inList = false;
+    }
+
+    // Headers
+    const h3 = line.match(/^###\s+(.*)/);
+    if (h3) { out.push('<h3>' + inlineMd(h3[1]) + '</h3>'); continue; }
+    const h2 = line.match(/^##\s+(.*)/);
+    if (h2) { out.push('<h2>' + inlineMd(h2[1]) + '</h2>'); continue; }
+    const h1 = line.match(/^#\s+(.*)/);
+    if (h1) { out.push('<h1>' + inlineMd(h1[1]) + '</h1>'); continue; }
+
+    // List items
+    const li = line.match(/^\s*[-*]\s+(.*)/);
+    if (li) {
+      if (!inList) { out.push('<ul>'); inList = true; }
+      out.push('<li>' + inlineMd(li[1]) + '</li>');
+      continue;
+    }
+
+    // Horizontal rule
+    if (line.match(/^---+$/)) { out.push('<hr>'); continue; }
+
+    // Empty line
+    if (line.trim() === '') { out.push('<br>'); continue; }
+
+    // Paragraph
+    out.push('<p>' + inlineMd(line) + '</p>');
+  }
+
+  if (inList) out.push('</ul>');
+  if (inCode) out.push('<pre><code>' + escapeHtml(codeBuf.join('\n')) + '</code></pre>');
+
+  return out.join('\n');
+}
+
+function inlineMd(s) {
+  let r = escapeHtml(s);
+  // Bold
+  r = r.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  r = r.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Inline code
+  r = r.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return r;
+}
+
 // ═══════════ THEME ═══════════
 let currentTheme = 'light';
 
@@ -559,11 +899,20 @@ $('#settingsThemeToggle')?.addEventListener('click', () => {
   applyTheme(currentTheme === 'light' ? 'dark' : 'light');
 });
 
+// ═══════════ WINDOW CONTROLS ═══════════
+$('#btnMinimize')?.addEventListener('click', () => window.api?.winMinimize());
+$('#btnMaximize')?.addEventListener('click', () => window.api?.winMaximize());
+$('#btnClose')?.addEventListener('click', () => window.api?.winClose());
+
 // ═══════════ NAVIGATION ═══════════
 const tabTitles = {
   'overview': '概览',
   'large-files': '大文件',
+  'duplicates': '重复文件',
   'temp-files': '临时文件',
+  'tree': '目录树',
+  'history': '历史记录',
+  'ai': 'AI 分析',
   'settings': '设置',
 };
 
@@ -571,6 +920,7 @@ function showPanel(tabName) {
   $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tabName));
   $$('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabName));
   $('#topbarTitle').textContent = tabTitles[tabName] || tabName;
+  if (tabName === 'history') loadHistory();
 }
 
 $$('.nav-item').forEach(btn => {
@@ -599,6 +949,7 @@ $('#btnRescan').addEventListener('click', () => {
   if (path) startScan(path);
 });
 $('#btnBrowse').addEventListener('click', async () => {
+  if (!window.api) { alert('API 未加载，请重启应用'); return; }
   const dir = await window.api.showOpenDialog();
   if (dir) {
     $('#scanPath').value = dir;
@@ -642,6 +993,8 @@ window.api?.onScanResult((result) => {
   populateOverview(result);
   populateLargeFiles(result);
   populateTempFiles(result);
+  populateDuplicates(result);
+  initTree($('#scanPath').value.trim(), result.dirSizeCache);
 });
 
 window.api?.onScanError((msg) => {
@@ -678,7 +1031,7 @@ function populateOverview(r) {
   const tbody = $('#tableTopDirs').querySelector('tbody');
   tbody.innerHTML = r.topDirs.map(([dir, size], i) => {
     const pct = r.totalUsed > 0 ? ((size / r.totalUsed) * 100).toFixed(1) : '0';
-    return `<tr>
+    return `<tr data-path="${escapeHtml(dir)}" data-type="dir">
       <td>${i + 1}</td>
       <td class="path-col" title="${escapeHtml(dir)}">${escapeHtml(dir)}</td>
       <td class="size-col">${formatSize(size)}</td>
@@ -778,11 +1131,12 @@ function populateLargeFiles(r) {
     const name = file.split(/[/\\]/).pop();
     const ext = name.includes('.') ? name.split('.').pop().toUpperCase() : '-';
     const date = mtime > 0 ? new Date(mtime * 1000).toLocaleDateString('zh-CN') : '-';
-    return `<tr>
+    return `<tr data-path="${escapeHtml(file)}" data-type="file">
       <td>${i + 1}</td>
       <td title="${escapeHtml(name)}">${escapeHtml(name)}</td>
       <td class="path-col" title="${escapeHtml(file)}">${escapeHtml(file)}</td>
       <td><span class="ext-col tag-accent">${escapeHtml(ext)}</span></td>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${date}</td>
       <td class="size-col">${formatSize(size)}</td>
     </tr>`;
   }).join('');
@@ -794,13 +1148,621 @@ function populateTempFiles(r) {
   $('#junkTotalSize').textContent = formatSize(junkTotal);
   const tbody = $('#tableJunk').querySelector('tbody');
   tbody.innerHTML = r.junkDirs.map(([dir, size], i) => {
-    return `<tr>
+    return `<tr data-path="${escapeHtml(dir)}" data-type="junk">
       <td>${i + 1}</td>
       <td class="path-col" title="${escapeHtml(dir)}">${escapeHtml(dir)}</td>
       <td class="size-col">${formatSize(size)}</td>
     </tr>`;
   }).join('');
 }
+
+// ═══════════ POPULATE DUPLICATES ═══════════
+function populateDuplicates(r) {
+  const dups = r.duplicates || [];
+  const dupBadge = $('#badgeDuplicates');
+  if (dups.length > 0) {
+    dupBadge.textContent = dups.length;
+    dupBadge.style.display = '';
+  } else {
+    dupBadge.style.display = 'none';
+  }
+
+  if (dups.length === 0) {
+    $('#dupResults').style.display = 'none';
+    $('#dupEmpty').style.display = '';
+    return;
+  }
+  $('#dupEmpty').style.display = 'none';
+  $('#dupResults').style.display = 'block';
+
+  const totalWaste = dups.reduce((sum, [size, paths]) => sum + size * (paths.length - 1), 0);
+  const totalFiles = dups.reduce((sum, [, paths]) => sum + paths.length, 0);
+
+  $('#dupStatCards').innerHTML = [
+    { label: '重复分组', value: dups.length.toString(), icon: 'warning' },
+    { label: '涉及文件', value: totalFiles.toLocaleString(), icon: 'accent' },
+    { label: '可回收空间', value: formatSize(totalWaste), icon: 'danger' },
+  ].map(c => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${c.label}</div>
+        <div class="card-icon ${c.icon}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      </div>
+      <div class="card-value">${c.value}</div>
+    </div>
+  `).join('');
+
+  const groupsHtml = dups.map(([size, paths], gi) => {
+    const name = paths[0].split(/[/\\]/).pop();
+    const waste = size * (paths.length - 1);
+    const rows = paths.map((p, pi) => {
+      const date = '-';
+      return `<tr data-path="${escapeHtml(p)}" data-type="dup">
+        <td style="width:30px"><input type="checkbox" checked data-dup-group="${gi}" data-dup-idx="${pi}" /></td>
+        <td class="path-col" title="${escapeHtml(p)}">${escapeHtml(p)}</td>
+        <td style="width:100px;font-size:11px;color:var(--muted)">${pi === 0 ? '<span class="tag tag-success">建议保留</span>' : '<span class="tag tag-danger">建议删除</span>'}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="dup-group${gi === 0 ? ' open' : ''}" data-group="${gi}">
+      <div class="dup-group-header">
+        <svg class="dup-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="dup-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+        <span class="tag tag-warning">${paths.length} 份</span>
+        <span class="dup-size">${formatSize(size)} / 份</span>
+        <span class="dup-size" style="color:var(--danger)">浪费 ${formatSize(waste)}</span>
+      </div>
+      <div class="dup-group-body">
+        <table class="data-table"><tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('#dupGroups').innerHTML = groupsHtml;
+
+  // Toggle group expand/collapse
+  $$('.dup-group-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.closest('.dup-group').classList.toggle('open');
+    });
+  });
+
+  // Expand/collapse all
+  $('#dupExpandAll').onclick = () => $$('.dup-group').forEach(g => g.classList.add('open'));
+  $('#dupCollapseAll').onclick = () => $$('.dup-group').forEach(g => g.classList.remove('open'));
+
+  // Right-click context menu on dup rows
+  $$('#dupGroups tr[data-path]').forEach(row => {
+    row.addEventListener('contextmenu', (e) => showContextMenu(e, row.dataset.path, ['openDir', 'copyPath', 'trash']));
+  });
+}
+
+// ═══════════ HISTORY CHART RESIZE ═══════════
+let lastHistoryEntries = null;
+const historyResizeObserver = new ResizeObserver(() => {
+  if (lastHistoryEntries && lastHistoryEntries.length > 0) {
+    drawHistoryChart(lastHistoryEntries);
+  }
+});
+
+// ═══════════ POPULATE HISTORY ═══════════
+function populateHistory(entries) {
+  if (!entries || entries.length === 0) {
+    $('#historyResults').style.display = 'none';
+    $('#historyEmpty').style.display = '';
+    return;
+  }
+  $('#historyEmpty').style.display = 'none';
+  $('#historyResults').style.display = 'block';
+
+  const totalScans = entries.length;
+  const lastSize = entries[0].totalUsed;
+  const avgTime = entries.reduce((s, e) => s + e.scanTime, 0) / entries.length;
+
+  $('#historyStatCards').innerHTML = [
+    { label: '累计扫描', value: totalScans + ' 次', icon: 'accent' },
+    { label: '最近大小', value: formatSize(lastSize), icon: 'success' },
+    { label: '平均耗时', value: avgTime.toFixed(2) + 's', icon: 'warning' },
+  ].map(c => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${c.label}</div>
+        <div class="card-icon ${c.icon}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      </div>
+      <div class="card-value">${c.value}</div>
+    </div>
+  `).join('');
+
+  // Trend chart (last 10)
+  const recent = entries.slice(0, 10).reverse();
+  lastHistoryEntries = recent;
+  drawHistoryChart(recent);
+
+  // Observe chart container for resize
+  const chartWrap = $('.history-chart-wrap');
+  if (chartWrap) historyResizeObserver.observe(chartWrap);
+
+  // Table
+  const tbody = $('#tableHistory').querySelector('tbody');
+  tbody.innerHTML = entries.map(e => {
+    const date = new Date(e.timestamp).toLocaleString('zh-CN');
+    return `<tr>
+      <td style="font-size:11px">${escapeHtml(date)}</td>
+      <td class="path-col" title="${escapeHtml(e.scanPath)}">${escapeHtml(e.scanPath)}</td>
+      <td class="size-col">${e.scannedItems.toLocaleString()}</td>
+      <td class="size-col">${formatSize(e.totalUsed)}</td>
+      <td class="size-col">${e.scanTime.toFixed(2)}s</td>
+    </tr>`;
+  }).join('');
+}
+
+function drawHistoryChart(recent) {
+  const canvas = $('#historyCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+
+  const w = rect.width, h = rect.height;
+  const pad = { top: 20, right: 20, bottom: 30, left: 60 };
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, w, h);
+
+  if (recent.length === 0) return;
+
+  const maxVal = Math.max(...recent.map(e => e.totalUsed)) * 1.1 || 1;
+  const barW = Math.min(40, (chartW / recent.length) * 0.6);
+  const gap = (chartW - barW * recent.length) / (recent.length + 1);
+
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  const mutedColor = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
+  const fgColor = getComputedStyle(document.documentElement).getPropertyValue('--fg-secondary').trim();
+
+  // Bars
+  recent.forEach((e, i) => {
+    const x = pad.left + gap + i * (barW + gap);
+    const barH = (e.totalUsed / maxVal) * chartH;
+    const y = pad.top + chartH - barH;
+
+    ctx.fillStyle = accentColor;
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    const r = 3;
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + barW - r, y);
+    ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
+    ctx.lineTo(x + barW, pad.top + chartH);
+    ctx.lineTo(x, pad.top + chartH);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Label
+    ctx.fillStyle = mutedColor;
+    ctx.font = '10px ' + getComputedStyle(document.documentElement).getPropertyValue('--font-mono');
+    ctx.textAlign = 'center';
+    const label = new Date(e.timestamp).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+    ctx.fillText(label, x + barW / 2, h - 8);
+  });
+
+  // Y-axis labels
+  ctx.fillStyle = fgColor;
+  ctx.font = '10px ' + getComputedStyle(document.documentElement).getPropertyValue('--font-mono');
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const val = maxVal * (i / 4);
+    const y = pad.top + chartH - (val / maxVal) * chartH;
+    ctx.fillText(formatSize(val), pad.left - 6, y + 3);
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+  }
+}
+
+// ═══════════ CONTEXT MENU ═══════════
+let contextMenuTarget = null;
+const contextMenu = $('#contextMenu');
+
+const CONTEXT_ACTIONS = {
+  open: { label: '打开', icon: '' },
+  openDir: { label: '打开所在文件夹', icon: '' },
+  copyPath: { label: '复制路径', icon: '' },
+  trash: { label: '移至回收站', icon: '', danger: true },
+  delete: { label: '永久删除', icon: '', danger: true },
+};
+
+function showContextMenu(e, filePath, actions) {
+  e.preventDefault();
+  contextMenuTarget = filePath;
+
+  // Show/hide items based on allowed actions
+  contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+    const action = item.dataset.action;
+    item.style.display = actions.includes(action) ? '' : 'none';
+  });
+  // Show/hide separator
+  const sep = contextMenu.querySelector('.context-menu-sep');
+  const hasDanger = actions.some(a => a === 'trash' || a === 'delete');
+  sep.style.display = hasDanger ? '' : 'none';
+
+  contextMenu.style.left = e.clientX + 'px';
+  contextMenu.style.top = e.clientY + 'px';
+  contextMenu.classList.add('visible');
+
+  // Keep menu in viewport
+  requestAnimationFrame(() => {
+    const rect = contextMenu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) contextMenu.style.left = (e.clientX - rect.width) + 'px';
+    if (rect.bottom > window.innerHeight) contextMenu.style.top = (e.clientY - rect.height) + 'px';
+  });
+}
+
+function hideContextMenu() {
+  contextMenu.classList.remove('visible');
+  contextMenuTarget = null;
+}
+
+document.addEventListener('click', (e) => {
+  if (!contextMenu.contains(e.target)) hideContextMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideContextMenu();
+});
+
+contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+  item.addEventListener('click', async () => {
+    if (!contextMenuTarget) return;
+    const target = contextMenuTarget;
+    const action = item.dataset.action;
+    hideContextMenu();
+    switch (action) {
+      case 'open':
+        window.api?.openFile(target);
+        break;
+      case 'openDir':
+        window.api?.openDir(target);
+        break;
+      case 'copyPath':
+        window.api?.copyPath(target);
+        break;
+      case 'trash':
+      case 'delete': {
+        const isPermanent = action === 'delete';
+        const msg = isPermanent
+          ? '确定永久删除此文件？此操作不可撤销。'
+          : '确定将此文件移至回收站？';
+        if (!confirm(msg)) break;
+        const result = await window.api?.deleteFile(target, isPermanent);
+        if (result?.ok) {
+          removeDeletedRow(target);
+        } else {
+          alert('删除失败: ' + (result?.error || '未知错误'));
+        }
+        break;
+      }
+    }
+  });
+});
+
+function removeDeletedRow(deletedPath) {
+  // Remove all rows with this path from DOM (with fade animation)
+  document.querySelectorAll(`tr[data-path="${CSS.escape(deletedPath)}"]`).forEach(row => {
+    row.style.transition = 'opacity 0.3s, transform 0.3s';
+    row.style.opacity = '0';
+    row.style.transform = 'translateX(-20px)';
+    setTimeout(() => row.remove(), 300);
+  });
+
+  // Update scanResult to keep data in sync
+  if (!scanResult) return;
+  scanResult.topFiles = scanResult.topFiles.filter(([p]) => p !== deletedPath);
+  scanResult.topDirs = scanResult.topDirs.filter(([p]) => p !== deletedPath);
+  scanResult.junkDirs = scanResult.junkDirs.filter(([p]) => p !== deletedPath);
+  scanResult.duplicates = scanResult.duplicates
+    .map(([size, paths]) => [size, paths.filter(p => p !== deletedPath)])
+    .filter(([, paths]) => paths.length >= 2);
+  if (scanResult.dirSizeCache) delete scanResult.dirSizeCache[deletedPath];
+
+  // Update badges
+  const lfBadge = $('#badgeLargeFiles');
+  if (scanResult.topFiles.length > 0) {
+    lfBadge.textContent = scanResult.topFiles.length;
+    lfBadge.style.display = '';
+  } else {
+    lfBadge.style.display = 'none';
+  }
+  const dupBadge = $('#badgeDuplicates');
+  if (scanResult.duplicates.length > 0) {
+    dupBadge.textContent = scanResult.duplicates.length;
+    dupBadge.style.display = '';
+  } else {
+    dupBadge.style.display = 'none';
+  }
+
+  // Update counts
+  $('#largeFilesCount').textContent = scanResult.topFiles.length + ' 个文件';
+  const junkTotal = scanResult.junkDirs.reduce((s, [, v]) => s + v, 0);
+  $('#junkTotalSize').textContent = formatSize(junkTotal);
+}
+
+// Right-click on large file rows
+function attachContextMenu() {
+  document.addEventListener('contextmenu', (e) => {
+    const row = e.target.closest('tr[data-path]');
+    if (!row) return;
+    const type = row.dataset.type || 'file';
+    let actions;
+    switch (type) {
+      case 'dup':
+        actions = ['openDir', 'copyPath', 'trash'];
+        break;
+      case 'junk':
+        actions = ['openDir', 'copyPath'];
+        break;
+      case 'dir':
+        actions = ['openDir', 'copyPath'];
+        break;
+      default:
+        actions = ['open', 'openDir', 'copyPath', 'trash', 'delete'];
+    }
+    showContextMenu(e, row.dataset.path, actions);
+  });
+}
+attachContextMenu();
+
+// ═══════════ HISTORY PANEL LOAD ═══════════
+async function loadHistory() {
+  try {
+    const entries = await window.api.getHistory();
+    populateHistory(entries || []);
+  } catch (e) {
+    console.error('Failed to load history:', e);
+  }
+}
+
+// ═══════════ TREE VIEW ═══════════
+let treeRootPath = null;
+const treeLoadedSet = new Set();
+
+function initTree(scanPath, dirSizeCache) {
+  treeRootPath = scanPath;
+  treeLoadedSet.clear();
+  const container = $('#treeContainer');
+  container.innerHTML = '';
+
+  const rootSize = dirSizeCache[pathResolve(scanPath)] || -1;
+  const rootNode = createTreeNode({
+    name: scanPath.split(/[/\\]/).filter(Boolean).pop() || scanPath,
+    fullPath: scanPath,
+    isDir: true,
+    size: rootSize,
+  }, rootSize);
+  container.appendChild(rootNode.element);
+
+  // Auto-expand root
+  loadTreeChildren(rootNode.childrenEl, scanPath, rootSize);
+  rootNode.childrenEl.classList.add('visible');
+  rootNode.arrow.classList.add('expanded');
+}
+
+function pathResolve(p) {
+  // Simple normalize: remove trailing separator
+  return p.replace(/[/\\]+$/, '');
+}
+
+function createTreeNode(entry, parentSize) {
+  const wrapper = document.createElement('div');
+
+  const row = document.createElement('div');
+  row.className = 'tree-node';
+  row.dataset.path = entry.fullPath;
+  row.dataset.type = entry.isDir ? 'dir' : 'file';
+
+  const arrow = document.createElement('span');
+  arrow.className = 'tree-arrow' + (entry.isDir ? '' : ' hidden');
+  arrow.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+
+  const icon = document.createElement('span');
+  icon.className = 'tree-icon ' + (entry.isDir ? 'folder' : 'file');
+  if (entry.isDir) {
+    icon.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg>';
+  } else {
+    icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  }
+
+  const name = document.createElement('span');
+  name.className = 'tree-name';
+  name.textContent = entry.name;
+  name.title = entry.fullPath;
+
+  const size = document.createElement('span');
+  size.className = 'tree-size';
+  size.textContent = entry.size >= 0 ? formatSize(entry.size) : '...';
+
+  const bar = document.createElement('span');
+  bar.className = 'tree-bar';
+  if (parentSize > 0 && entry.size > 0) {
+    const pct = Math.min(100, (entry.size / parentSize) * 100);
+    bar.innerHTML = `<div class="tree-bar-fill" style="width:${pct}%"></div>`;
+  } else {
+    bar.innerHTML = '<div class="tree-bar-fill" style="width:0%"></div>';
+  }
+
+  row.appendChild(arrow);
+  row.appendChild(icon);
+  row.appendChild(name);
+  row.appendChild(size);
+  row.appendChild(bar);
+
+  const childrenEl = document.createElement('div');
+  childrenEl.className = 'tree-children';
+
+  wrapper.appendChild(row);
+  wrapper.appendChild(childrenEl);
+
+  if (entry.isDir) {
+    arrow.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTreeNode(arrow, childrenEl, entry.fullPath, entry.size);
+    });
+    row.addEventListener('click', () => {
+      toggleTreeNode(arrow, childrenEl, entry.fullPath, entry.size);
+    });
+  }
+
+  // Context menu
+  row.addEventListener('contextmenu', (e) => {
+    const actions = entry.isDir ? ['openDir', 'copyPath', 'trash'] : ['open', 'openDir', 'copyPath', 'trash', 'delete'];
+    showContextMenu(e, entry.fullPath, actions);
+  });
+
+  return { element: wrapper, arrow, childrenEl };
+}
+
+async function toggleTreeNode(arrow, childrenEl, dirPath, parentSize) {
+  const isExpanded = childrenEl.classList.contains('visible');
+  if (isExpanded) {
+    childrenEl.classList.remove('visible');
+    arrow.classList.remove('expanded');
+  } else {
+    childrenEl.classList.add('visible');
+    arrow.classList.add('expanded');
+    if (!treeLoadedSet.has(dirPath)) {
+      await loadTreeChildren(childrenEl, dirPath, parentSize);
+    }
+  }
+}
+
+async function loadTreeChildren(container, dirPath, parentSize) {
+  if (treeLoadedSet.has(dirPath)) return;
+  treeLoadedSet.add(dirPath);
+
+  // Show loading placeholder
+  container.innerHTML = '<div class="tree-placeholder">加载中...</div>';
+
+  try {
+    const entries = await window.api.treeListDir(dirPath);
+    container.innerHTML = '';
+
+    if (!entries || entries.length === 0) {
+      container.innerHTML = '<div class="tree-placeholder">空目录</div>';
+      return;
+    }
+
+    for (const entry of entries) {
+      const node = createTreeNode(entry, parentSize >= 0 ? parentSize : entry.size);
+      container.appendChild(node.element);
+    }
+  } catch (e) {
+    container.innerHTML = '<div class="tree-placeholder">加载失败</div>';
+    console.error('Tree load failed:', e);
+  }
+}
+
+// Tree search
+$('#treeSearch')?.addEventListener('input', (e) => {
+  const term = e.target.value.toLowerCase().trim();
+  const nodes = $$('#treeContainer .tree-node');
+  if (!term) {
+    nodes.forEach(n => n.style.display = '');
+    return;
+  }
+  nodes.forEach(n => {
+    const name = n.querySelector('.tree-name')?.textContent?.toLowerCase() || '';
+    n.style.display = name.includes(term) ? '' : 'none';
+  });
+});
+
+// Tree expand/collapse all
+$('#treeExpandAll')?.addEventListener('click', async () => {
+  const arrows = $$('#treeContainer .tree-arrow:not(.hidden)');
+  for (const arrow of arrows) {
+    const childrenEl = arrow.closest('.tree-node')?.nextElementSibling;
+    if (childrenEl && !childrenEl.classList.contains('visible')) {
+      arrow.click();
+    }
+  }
+});
+$('#treeCollapseAll')?.addEventListener('click', () => {
+  $$('#treeContainer .tree-children.visible').forEach(c => c.classList.remove('visible'));
+  $$('#treeContainer .tree-arrow.expanded').forEach(a => a.classList.remove('expanded'));
+});
+
+// ═══════════ AI ANALYSIS ═══════════
+let llmStreaming = false;
+let llmFullText = '';
+
+function updateLlmButtons() {
+  $('#btnLlmAnalyze').disabled = llmStreaming;
+  $('#btnLlmStop').disabled = !llmStreaming;
+}
+
+$('#btnLlmAnalyze')?.addEventListener('click', () => {
+  if (llmStreaming) return;
+  if (!scanResult) { alert('请先扫描'); return; }
+  llmStreaming = true;
+  llmFullText = '';
+  $('#llmOutput').textContent = '';
+  $('#llmStatus').textContent = '正在分析...';
+  updateLlmButtons();
+  window.api.llmAnalyze();
+});
+
+$('#btnLlmStop')?.addEventListener('click', () => {
+  window.api.llmStop();
+  llmStreaming = false;
+  $('#llmStatus').textContent = '已停止';
+  updateLlmButtons();
+});
+
+$('#btnLlmClear')?.addEventListener('click', () => {
+  if (llmStreaming) window.api.llmStop();
+  llmStreaming = false;
+  llmFullText = '';
+  $('#llmOutput').innerHTML = '';
+  $('#llmStatus').textContent = '';
+  updateLlmButtons();
+});
+
+$('#btnLlmCopy')?.addEventListener('click', () => {
+  if (llmFullText) {
+    navigator.clipboard.writeText(llmFullText);
+    $('#llmStatus').textContent = '已复制到剪贴板';
+  }
+});
+
+window.api?.onLlmStream((token) => {
+  llmFullText += token;
+  const output = $('#llmOutput');
+  output.innerHTML = renderMarkdown(llmFullText);
+  output.scrollTop = output.scrollHeight;
+});
+
+window.api?.onLlmDone((fullText) => {
+  llmStreaming = false;
+  llmFullText = fullText || llmFullText;
+  $('#llmOutput').innerHTML = renderMarkdown(llmFullText);
+  $('#llmStatus').textContent = '分析完成';
+  updateLlmButtons();
+});
+
+window.api?.onLlmError((msg) => {
+  llmStreaming = false;
+  $('#llmOutput').innerHTML = '<p style="color:var(--danger)">分析失败: ' + escapeHtml(msg) + '</p>';
+  $('#llmStatus').textContent = '错误';
+  updateLlmButtons();
+});
 
 // ═══════════ INIT ═══════════
 (async function init() {
@@ -811,6 +1773,12 @@ function populateTempFiles(r) {
       if (config.lastScanPath) $('#scanPath').value = config.lastScanPath;
       if (config.topN) $('#settingsTopN').value = config.topN;
       if (config.excludeDirs) $('#settingsExcludeDirs').value = config.excludeDirs.join('\n');
+      if (config.duplicateDetection) $('#settingsDupToggle').classList.add('on');
+      if (config.customJunkDirs) $('#settingsCustomJunkDirs').value = config.customJunkDirs.join('\n');
+      if (config.llmApiUrl) $('#settingsLlmUrl').value = config.llmApiUrl;
+      if (config.llmApiKey) $('#settingsLlmKey').value = config.llmApiKey;
+      if (config.llmModel) $('#settingsLlmModel').value = config.llmModel;
+      if (config.llmTemperature != null) $('#settingsLlmTemp').value = config.llmTemperature;
     }
   } catch (e) {
     console.error('Init failed:', e);
@@ -839,6 +1807,27 @@ $('#settingsTopN').addEventListener('change', () => {
 $('#settingsExcludeDirs').addEventListener('change', () => {
   const dirs = $('#settingsExcludeDirs').value.split('\n').map(s => s.trim()).filter(Boolean);
   window.api.setConfig({ excludeDirs: dirs });
+});
+$('#settingsDupToggle').addEventListener('click', () => {
+  const on = !$('#settingsDupToggle').classList.contains('on');
+  $('#settingsDupToggle').classList.toggle('on', on);
+  window.api.setConfig({ duplicateDetection: on });
+});
+$('#settingsCustomJunkDirs').addEventListener('change', () => {
+  const dirs = $('#settingsCustomJunkDirs').value.split('\n').map(s => s.trim()).filter(Boolean);
+  window.api.setConfig({ customJunkDirs: dirs });
+});
+$('#settingsLlmUrl').addEventListener('change', () => {
+  window.api.setConfig({ llmApiUrl: $('#settingsLlmUrl').value.trim() });
+});
+$('#settingsLlmKey').addEventListener('change', () => {
+  window.api.setConfig({ llmApiKey: $('#settingsLlmKey').value.trim() });
+});
+$('#settingsLlmModel').addEventListener('change', () => {
+  window.api.setConfig({ llmModel: $('#settingsLlmModel').value.trim() });
+});
+$('#settingsLlmTemp').addEventListener('change', () => {
+  window.api.setConfig({ llmTemperature: parseFloat($('#settingsLlmTemp').value) || 0.3 });
 });
 
 // Keyboard shortcuts
