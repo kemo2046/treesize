@@ -3,3 +3,5 @@ dist/
 release/
 out/
 *.log
+.DS_Store
+Thumbs.db
